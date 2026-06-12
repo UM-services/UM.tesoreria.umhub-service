@@ -5,6 +5,17 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-06-12
+
+### Added
+
+- Nuevo endpoint REST `/api/tesoreria/umhub/hello/test` como controlador de prueba del servicio.
+- Badges tecnológicos en README.md.
+
+### Fixed
+
+- Corregido el nombre de la universidad en la descripción del proyecto (Montevideo → Mendoza).
+
 ## [0.0.1] - 2026-06-12
 
 ### Added

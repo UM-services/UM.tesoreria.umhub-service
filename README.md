@@ -7,6 +7,7 @@
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
+![Version 0.1.0](https://img.shields.io/badge/Version-0.1.0-%23333?logo=semver)
 
 Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST y utilizando OpenFeign para la comunicación con otros microservicios del ecosistema.
 
