@@ -6,7 +6,7 @@ sequenceDiagram
     participant CON as Consul
     participant SVC as Microservicio Destino
 
-    C->>GW: Solicitud REST
+    C->>GW: Solicitud REST (/api/tesoreria/umhub/**)
     GW->>H: Reenviar solicitud
     H->>CON: Descubrir servicio destino
     CON-->>H: Dirección del servicio
