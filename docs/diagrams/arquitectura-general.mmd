@@ -1,0 +1,34 @@
+```mermaid
+graph TD
+    subgraph "Ecosistema UM Tesoreria"
+        GW[API Gateway]
+        CONSUL[Consul Service Discovery]
+    end
+
+    subgraph "umhub-service"
+        REST[API REST - Spring Web]
+        FEIGN[OpenFeign Clients]
+        CACHE[Caffeine Cache]
+        ACT[Actuator]
+    end
+
+    subgraph "Servicios Externos"
+        SVC1[Microservicio A]
+        SVC2[Microservicio B]
+        SVC3[Microservicio C]
+    end
+
+    CLIENT[Cliente] --> GW
+    GW --> REST
+    REST --> FEIGN
+    FEIGN --> SVC1
+    FEIGN --> SVC2
+    FEIGN --> SVC3
+    REST --> CACHE
+    REST --> ACT
+
+    REST -.->|Registro| CONSUL
+    SVC1 -.->|Registro| CONSUL
+    SVC2 -.->|Registro| CONSUL
+    SVC3 -.->|Registro| CONSUL
+```
