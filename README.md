@@ -1,6 +1,14 @@
 # UM Tesoreria Umhub Service
 
-Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Montevideo. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST y utilizando OpenFeign para la comunicación con otros microservicios del ecosistema.
+![Java 25](https://img.shields.io/badge/Java-25-%23ED8B00?logo=openjdk)
+![Spring Boot 4.0.7](https://img.shields.io/badge/Spring_Boot-4.0.7-%236DB33F?logo=springboot)
+![Spring Cloud 2025.1.1](https://img.shields.io/badge/Spring_Cloud-2025.1.1-%236DB33F?logo=spring)
+![Maven](https://img.shields.io/badge/Maven-3-%23C71A36?logo=apachemaven)
+![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
+![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
+![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
+
+Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST y utilizando OpenFeign para la comunicación con otros microservicios del ecosistema.
 
 ## Stack Tecnológico
 
