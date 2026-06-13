@@ -6,29 +6,45 @@ graph TD
     end
 
     subgraph "umhub-service"
+        AKF[API Key Filter]
         REST[API REST - Spring Web]
-        FEIGN[OpenFeign Clients]
+        
+        subgraph "Campaña Module (Hexagonal)"
+            direction TB
+            CTRL[CampanhaController]
+            SVC[CampanhaService]
+            UC[Use Cases]
+            DOM[Domain Model]
+            PORT[Ports / Adapters]
+            FEIGN[CampanhaFeignClient]
+            ADAPT[FeignClientAdapter]
+        end
+        
         CACHE[Caffeine Cache]
         ACT[Actuator]
     end
 
     subgraph "Servicios Externos"
-        SVC1[Microservicio A]
+        CORE[tesoreria-core-service]
         SVC2[Microservicio B]
         SVC3[Microservicio C]
     end
 
     CLIENT[Cliente] --> GW
-    GW --> REST
-    REST --> FEIGN
-    FEIGN --> SVC1
-    FEIGN --> SVC2
-    FEIGN --> SVC3
+    GW --> AKF
+    AKF -->|X-API-Key válida| REST
+    AKF -->|X-API-Key inválida| REJ[401 Unauthorized]
+    REST --> CTRL
+    CTRL --> SVC
+    SVC --> UC
+    UC --> PORT
+    PORT --> ADAPT
+    ADAPT --> FEIGN
+    FEIGN --> CORE
     REST --> CACHE
     REST --> ACT
 
     REST -.->|Registro| CONSUL
-    SVC1 -.->|Registro| CONSUL
+    CORE -.->|Registro| CONSUL
     SVC2 -.->|Registro| CONSUL
     SVC3 -.->|Registro| CONSUL
-```

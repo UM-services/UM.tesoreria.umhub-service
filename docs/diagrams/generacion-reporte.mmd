@@ -2,16 +2,22 @@
 sequenceDiagram
     participant C as Cliente
     participant GW as API Gateway
+    participant AKF as API Key Filter
     participant H as umhub-service
     participant CON as Consul
-    participant SVC as Microservicio Destino
+    participant CORE as tesoreria-core-service
 
-    C->>GW: Solicitud REST (/api/tesoreria/umhub/**)
-    GW->>H: Reenviar solicitud
-    H->>CON: Descubrir servicio destino
-    CON-->>H: Dirección del servicio
-    H->>SVC: Llamada OpenFeign
-    SVC-->>H: Respuesta
-    H-->>GW: Respuesta procesada
-    GW-->>C: Respuesta final
-```
+    C->>GW: POST /api/tesoreria/umhub/campanha/
+    GW->>AKF: Validar X-API-Key
+    alt API Key inválida
+        AKF-->>GW: 401 Unauthorized
+        GW-->>C: Error de autenticación
+    else API Key válida
+        AKF->>H: Reenviar solicitud
+        H->>CON: Descubrir tesoreria-core-service
+        CON-->>H: Dirección del servicio
+        H->>CORE: Llamada OpenFeign (createCampanha)
+        CORE-->>H: BackendCampanhaResponse
+        H-->>GW: CampanhaWrappedResponse
+        GW-->>C: 201 Created (campaña creada)
+    end

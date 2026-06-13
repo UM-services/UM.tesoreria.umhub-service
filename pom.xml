@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.7</version>
+        <version>4.1.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>tesoreria</groupId>
     <artifactId>esoreria-umhub-service</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <name>um.tesoreria.umhub-service</name>
     <description>um.tesoreria.umhub-service</description>
     <url/>
@@ -28,7 +28,7 @@
     </scm>
     <properties>
         <java.version>25</java.version>
-        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <spring-cloud.version>2025.1.2</spring-cloud.version>
     </properties>
     <dependencies>
         <dependency>
@@ -75,6 +75,11 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

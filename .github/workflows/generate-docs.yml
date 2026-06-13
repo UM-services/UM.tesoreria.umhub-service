@@ -101,6 +101,18 @@ jobs:
               </div>
           EOF
           
+          # --- Inject Campaña hexagonal flow diagram ---
+          cat >> docs/index.html << 'EOF'
+              <div id="campanha-flow" class="section">
+                  <h2>📦 Flujo Hexagonal: Módulo Campaña</h2>
+                  <div class="mermaid">
+          EOF
+          sed '1d;$d' docs/diagrams/flujo-campanha.mmd >> docs/index.html
+          cat >> docs/index.html << 'EOF'
+                  </div>
+              </div>
+          EOF
+          
           # --- Write HTML footer (dependencies, milestones, scripts) ---
           cat >> docs/index.html << 'EOF'
               <div id="dependencies" class="section">

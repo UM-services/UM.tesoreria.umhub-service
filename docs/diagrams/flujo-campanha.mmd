@@ -1,0 +1,42 @@
+```mermaid
+flowchart LR
+    subgraph "Infrastructure Layer"
+        CTRL[CampanhaController]
+        REQ[CampanhaRequest DTO]
+        RES[CampanhaWrappedResponse]
+        MAP[CampanhaDtoMapper]
+        FEIGN[CampanhaFeignClient]
+        ADAPT[CampanhaFeignClientAdapter]
+        BREQ[BackendCampanhaRequest]
+        BRES[BackendCampanhaResponse]
+    end
+
+    subgraph "Application Layer"
+        SVC[CampanhaService]
+        CUC[CreateCampanhaUseCaseImpl]
+        UUC[UpdateCampanhaUseCaseImpl]
+    end
+
+    subgraph "Domain Layer"
+        MODEL[Campanha Model]
+        IN[CreateCampanhaUseCase<br/>UpdateCampanhaUseCase]
+        OUT[CampanhaExternalService]
+    end
+
+    CTRL --> REQ
+    REQ --> MAP
+    MAP --> MODEL
+    CTRL --> SVC
+    SVC --> CUC
+    SVC --> UUC
+    CUC --> IN
+    UUC --> IN
+    IN --> OUT
+    OUT --> ADAPT
+    ADAPT --> FEIGN
+    FEIGN --> BREQ
+    FEIGN --> BRES
+    BRES --> ADAPT
+    ADAPT --> MODEL
+    MODEL --> MAP
+    MAP --> RES
