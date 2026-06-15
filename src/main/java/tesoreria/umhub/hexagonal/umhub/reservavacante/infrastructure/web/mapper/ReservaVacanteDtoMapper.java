@@ -40,6 +40,7 @@ public class ReservaVacanteDtoMapper {
                 .email(domain.getEmail())
                 .campanhaId(domain.getCampanhaId())
                 .status(domain.getStatus() != null ? domain.getStatus() : "pendiente")
+                .initPoint(domain.getInitPoint() != null ? domain.getInitPoint() : "")
                 .creadoEn(creadoEnStr)
                 .actualizadoEn(actualizadoEnStr)
                 .build();

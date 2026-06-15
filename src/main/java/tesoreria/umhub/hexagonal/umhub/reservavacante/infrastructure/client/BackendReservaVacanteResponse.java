@@ -20,6 +20,7 @@ public class BackendReservaVacanteResponse {
     private String email;
     private UUID campanhaId;
     private String estado;
+    private String initPoint;
     private LocalDateTime created;
     private LocalDateTime updated;
 }
