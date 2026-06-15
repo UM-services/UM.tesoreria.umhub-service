@@ -1,0 +1,39 @@
+```mermaid
+flowchart LR
+    subgraph "Infrastructure Layer"
+        CTRL[ReservaVacanteController]
+        REQ[ReservaVacanteRequest DTO]
+        RES[ReservaVacanteWrappedResponse]
+        MAP[ReservaVacanteDtoMapper]
+        FEIGN[ReservaVacanteFeignClient]
+        ADAPT[ReservaVacanteFeignClientAdapter]
+        BREQ[BackendReservaVacanteRequest]
+        BRES[BackendReservaVacanteResponse]
+    end
+
+    subgraph "Application Layer"
+        SVC[ReservaVacanteService]
+        CUC[CreateReservaVacanteUseCaseImpl]
+    end
+
+    subgraph "Domain Layer"
+        MODEL[ReservaVacante Model]
+        IN[CreateReservaVacanteUseCase]
+        OUT[ReservaVacanteExternalService]
+    end
+
+    CTRL --> REQ
+    REQ --> MAP
+    MAP --> MODEL
+    CTRL --> SVC
+    SVC --> CUC
+    CUC --> IN
+    IN --> OUT
+    OUT --> ADAPT
+    ADAPT --> FEIGN
+    FEIGN --> BREQ
+    FEIGN --> BRES
+    BRES --> ADAPT
+    ADAPT --> MODEL
+    MODEL --> MAP
+    MAP --> RES

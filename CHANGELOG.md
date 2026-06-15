@@ -5,6 +5,22 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-15
+
+### Added
+
+- Nuevo módulo `ReservaVacante` con arquitectura hexagonal: dominio (modelo, puertos), aplicación (servicio, caso de uso) e infraestructura (controlador REST, cliente Feign, adaptador, DTOs, mapper).
+- Nuevo endpoint REST `POST /api/tesoreria/umhub/reservaVacante/vacante/add` para creación de reservas de vacante.
+- Cliente Feign `ReservaVacanteFeignClient` con `contextId = "reservaVacanteClient"` para comunicación con `tesoreria-core-service`.
+- Adaptador `ReservaVacanteFeignClientAdapter` que implementa el puerto de salida `ReservaVacanteExternalService`.
+- Diagrama Mermaid `flujo-reservavacante.mmd` documentando el flujo hexagonal del nuevo módulo.
+
+### Changed
+
+- Rutas internas de FeignClient para campañas actualizadas de `/api/tesoreria/umhub/campanha/` a `/api/tesoreria/core/umhub/campanha/` para alinearse con el backend.
+- `CampanhaFeignClient` ahora incluye `contextId = "campanhaClient"` para evitar conflictos con otros Feign Clients en el mismo `tesoreria-core-service`.
+- Diagrama de arquitectura general actualizado para incluir el nuevo módulo `ReservaVacante`.
+
 ## [0.2.0] - 2026-06-13
 
 ### Added

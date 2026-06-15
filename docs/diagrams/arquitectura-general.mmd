@@ -20,14 +20,25 @@ graph TD
             ADAPT[FeignClientAdapter]
         end
         
+        subgraph "ReservaVacante Module (Hexagonal)"
+            direction TB
+            CTRL2[ReservaVacanteController]
+            SVC2[ReservaVacanteService]
+            UC2[Use Cases]
+            DOM2[Domain Model]
+            PORT2[Ports / Adapters]
+            FEIGN2[ReservaVacanteFeignClient]
+            ADAPT2[FeignClientAdapter]
+        end
+        
         CACHE[Caffeine Cache]
         ACT[Actuator]
     end
 
     subgraph "Servicios Externos"
         CORE[tesoreria-core-service]
-        SVC2[Microservicio B]
-        SVC3[Microservicio C]
+        MSVB[Microservicio B]
+        MSVC[Microservicio C]
     end
 
     CLIENT[Cliente] --> GW
@@ -35,16 +46,23 @@ graph TD
     AKF -->|X-API-Key válida| REST
     AKF -->|X-API-Key inválida| REJ[401 Unauthorized]
     REST --> CTRL
+    REST --> CTRL2
     CTRL --> SVC
+    CTRL2 --> SVC2
     SVC --> UC
+    SVC2 --> UC2
     UC --> PORT
+    UC2 --> PORT2
     PORT --> ADAPT
+    PORT2 --> ADAPT2
     ADAPT --> FEIGN
+    ADAPT2 --> FEIGN2
     FEIGN --> CORE
+    FEIGN2 --> CORE
     REST --> CACHE
     REST --> ACT
 
     REST -.->|Registro| CONSUL
     CORE -.->|Registro| CONSUL
-    SVC2 -.->|Registro| CONSUL
-    SVC3 -.->|Registro| CONSUL
+    MSVB -.->|Registro| CONSUL
+    MSVC -.->|Registro| CONSUL
