@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -24,8 +25,9 @@ public class CampanhaWrappedResponse {
     public static class CampanhaData {
         private UUID id;
         private String nombre;
+        private BigDecimal valorReserva;
         private String estado;
-        
+
         @JsonProperty("creado_en")
         private String creadoEn;
     }

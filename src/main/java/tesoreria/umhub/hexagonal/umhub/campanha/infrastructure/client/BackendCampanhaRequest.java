@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -13,5 +15,6 @@ import java.util.UUID;
 public class BackendCampanhaRequest {
     private UUID campanhaId;
     private String nombre;
+    private BigDecimal valorReserva;
     private Byte activa;
 }

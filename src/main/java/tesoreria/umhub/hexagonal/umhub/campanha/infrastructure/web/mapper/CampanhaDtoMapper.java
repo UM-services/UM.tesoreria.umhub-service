@@ -17,6 +17,7 @@ public class CampanhaDtoMapper {
         if (request == null) return null;
         return Campanha.builder()
                 .nombre(request.getNombre())
+                .valorReserva(request.getValorReserva())
                 .build();
     }
 
@@ -32,6 +33,7 @@ public class CampanhaDtoMapper {
         CampanhaWrappedResponse.CampanhaData data = CampanhaWrappedResponse.CampanhaData.builder()
                 .id(domain.getId())
                 .nombre(domain.getNombre())
+                .valorReserva(domain.getValorReserva())
                 .estado(domain.getEstado() != null ? domain.getEstado() : "activa")
                 .creadoEn(formattedDate)
                 .build();

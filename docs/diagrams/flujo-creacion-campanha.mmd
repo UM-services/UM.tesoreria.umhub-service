@@ -1,0 +1,23 @@
+```mermaid
+sequenceDiagram
+    participant C as Cliente
+    participant GW as API Gateway
+    participant AKF as API Key Filter
+    participant H as umhub-service
+    participant CON as Consul
+    participant CORE as tesoreria-core-service
+
+    C->>GW: POST /api/tesoreria/umhub/campanha/
+    GW->>AKF: Validar X-API-Key
+    alt API Key inválida
+        AKF-->>GW: 401 Unauthorized
+        GW-->>C: Error de autenticación
+    else API Key válida
+        AKF->>H: Reenviar solicitud
+        H->>CON: Descubrir tesoreria-core-service
+        CON-->>H: Dirección del servicio
+        H->>CORE: Llamada OpenFeign (createCampanha)
+        CORE-->>H: BackendCampanhaResponse (incluye valorReserva)
+        H-->>GW: CampanhaWrappedResponse
+        GW-->>C: 201 Created (campaña creada)
+    end

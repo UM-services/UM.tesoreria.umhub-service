@@ -7,7 +7,7 @@ sequenceDiagram
     participant CON as Consul
     participant CORE as tesoreria-core-service
 
-    C->>GW: POST /api/tesoreria/umhub/campanha/
+    C->>GW: GET /api/tesoreria/umhub/reservaVacante/reserva/status/{id}
     GW->>AKF: Validar X-API-Key
     alt API Key inválida
         AKF-->>GW: 401 Unauthorized
@@ -16,8 +16,13 @@ sequenceDiagram
         AKF->>H: Reenviar solicitud
         H->>CON: Descubrir tesoreria-core-service
         CON-->>H: Dirección del servicio
-        H->>CORE: Llamada OpenFeign (createCampanha)
-        CORE-->>H: BackendCampanhaResponse
-        H-->>GW: CampanhaWrappedResponse
-        GW-->>C: 201 Created (campaña creada)
+        H->>CORE: Llamada OpenFeign (getReservaVacanteStatus)
+        CORE-->>H: BackendReservaVacanteResponse
+        alt Reserva no encontrada
+            H-->>GW: 404 Not Found
+            GW-->>C: Error: reserva no encontrada
+        else Reserva encontrada
+            H-->>GW: ReservaVacanteWrappedResponse
+            GW-->>C: 200 OK (estado consultado)
+        end
     end

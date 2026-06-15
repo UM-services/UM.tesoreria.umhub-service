@@ -10,6 +10,8 @@ import tesoreria.umhub.hexagonal.umhub.reservavacante.infrastructure.web.dto.Res
 import tesoreria.umhub.hexagonal.umhub.reservavacante.infrastructure.web.dto.ReservaVacanteWrappedResponse;
 import tesoreria.umhub.hexagonal.umhub.reservavacante.infrastructure.web.mapper.ReservaVacanteDtoMapper;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/tesoreria/umhub/reservaVacante")
 @RequiredArgsConstructor
@@ -23,6 +25,16 @@ public class ReservaVacanteController {
         ReservaVacante domain = dtoMapper.toDomain(request);
         ReservaVacante created = reservaVacanteService.createReservaVacante(domain);
         ReservaVacanteWrappedResponse response = dtoMapper.toWrappedResponse(created, "Reserva creada exitosamente");
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/reserva/status/{id}")
+    public ResponseEntity<ReservaVacanteWrappedResponse> getStatus(@PathVariable UUID id) {
+        ReservaVacante domain = reservaVacanteService.getStatus(id);
+        if (domain == null) {
+            return ResponseEntity.notFound().build();
+        }
+        ReservaVacanteWrappedResponse response = dtoMapper.toWrappedResponse(domain, "Estado consultado exitosamente");
+        return ResponseEntity.ok(response);
     }
 }

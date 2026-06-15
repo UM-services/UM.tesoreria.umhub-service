@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,6 +16,7 @@ import java.util.UUID;
 public class BackendCampanhaResponse {
     private UUID campanhaId;
     private String nombre;
+    private BigDecimal valorReserva;
     private Byte activa;
     private LocalDateTime created;
 }

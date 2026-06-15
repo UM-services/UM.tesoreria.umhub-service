@@ -5,6 +5,24 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-15
+
+### Added
+
+- Nuevo campo `valorReserva` (BigDecimal) en el modelo de dominio `Campanha`, propagado a través de DTOs de solicitud/respuesta, mapper y adaptador Feign.
+- Nuevo endpoint REST `GET /api/tesoreria/umhub/reservaVacante/reserva/status/{id}` para consultar el estado de una reserva de vacante.
+- Nuevo caso de uso `GetReservaVacanteStatusUseCase` con su implementación en la capa de aplicación.
+- Nuevo método `getStatus(UUID)` en el puerto de salida `ReservaVacanteExternalService` y su implementación en `ReservaVacanteFeignClientAdapter`.
+- Nuevo método `getReservaVacanteStatus` en `ReservaVacanteFeignClient` (GET a `tesoreria-core-service`).
+- Diagrama Mermaid `flujo-consulta-reservavacante.mmd` documentando el flujo de consulta de estado.
+- Pipeline de documentación automática (`📄.github/workflows/docs.yml`) con generación de SVG desde Mermaid y despliegue a GitHub Pages.
+
+### Changed
+
+- Dependencia `springdoc-openapi-starter-webmvc-ui` actualizada de `3.0.2` a `3.0.3`.
+- Diagrama `generacion-reporte.mmd` renombrado a `flujo-creacion-campanha.mmd` para reflejar correctamente su contenido (flujo de creación de campaña).
+- Diagrama `flujo-reservavacante.mmd` actualizado para incluir el nuevo caso de uso `GetReservaVacanteStatusUseCase`.
+
 ## [0.3.0] - 2026-06-15
 
 ### Added
