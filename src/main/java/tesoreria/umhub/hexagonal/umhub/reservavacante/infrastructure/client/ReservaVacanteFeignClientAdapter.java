@@ -41,6 +41,7 @@ public class ReservaVacanteFeignClientAdapter implements ReservaVacanteExternalS
                 .status(response.getEstado())
                 .creadoEn(response.getCreated())
                 .actualizadoEn(response.getUpdated())
+                .initPoint(response.getInitPoint())
                 .build();
     }
 
@@ -63,6 +64,7 @@ public class ReservaVacanteFeignClientAdapter implements ReservaVacanteExternalS
                 .status(response.getEstado())
                 .creadoEn(response.getCreated())
                 .actualizadoEn(response.getUpdated())
+                .initPoint(response.getInitPoint())
                 .build();
     }
 }

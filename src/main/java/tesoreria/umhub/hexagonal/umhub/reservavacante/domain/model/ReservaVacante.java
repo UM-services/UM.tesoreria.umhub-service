@@ -18,6 +18,7 @@ public class ReservaVacante {
     private String email;
     private UUID campanhaId;
     private String status;
+    private String initPoint;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
 }

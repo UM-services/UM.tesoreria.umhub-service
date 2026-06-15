@@ -39,6 +39,9 @@ public class ReservaVacanteWrappedResponse {
 
         private String status;
 
+        @JsonProperty("init_point")
+        private String initPoint;
+
         @JsonProperty("creado_en")
         private String creadoEn;
 

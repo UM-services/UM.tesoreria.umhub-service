@@ -5,6 +5,12 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-15
+
+### Added
+
+- Nuevo campo `initPoint` (String) en el modelo de dominio `ReservaVacante`, propagado a través de DTOs (`BackendReservaVacanteResponse`, `ReservaVacanteWrappedResponse`), mapper y adaptador Feign.
+
 ## [0.4.0] - 2026-06-15
 
 ### Added
