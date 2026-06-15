@@ -7,9 +7,9 @@
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
-![Version 0.2.0](https://img.shields.io/badge/Version-0.2.0-%23333?logo=semver)
+![Version 0.3.0](https://img.shields.io/badge/Version-0.3.0-%23333?logo=semver)
 
-Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema.
+Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña` y `ReservaVacante`, cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema.
 
 ## Stack Tecnológico
 
@@ -18,7 +18,7 @@ Microservicio de concentrador (hub) para el sistema de tesorería de la Universi
 - **Spring Cloud 2025.1.2**
 - **Maven 3**
 - **API Key Authentication** — seguridad mediante header `X-API-Key`
-- **Arquitectura Hexagonal** — módulo de campañas con puertos y adaptadores
+- **Arquitectura Hexagonal** — módulos `Campaña` y `ReservaVacante` con puertos y adaptadores
 - **Consul Discovery** — registro y descubrimiento de servicios
 - **OpenFeign + Feign HC5** — cliente HTTP declarativo con Apache HC5
 - **SpringDoc OpenAPI 3.0.2** — documentación interactiva de la API
@@ -51,6 +51,8 @@ docker run -p 8080:8080 umhub-service
 
 ## API
 
+Todos los endpoints requieren el header `X-API-Key` con la clave configurada.
+
 ### Campañas
 
 | Método | Endpoint | Descripción |
@@ -58,7 +60,11 @@ docker run -p 8080:8080 umhub-service
 | `POST` | `/api/tesoreria/umhub/campanha/` | Crear una nueva campaña |
 | `PUT` | `/api/tesoreria/umhub/campanha/update/{id}` | Actualizar una campaña existente |
 
-Todos los endpoints requieren el header `X-API-Key` con la clave configurada.
+### Reserva de Vacantes
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/tesoreria/umhub/reservaVacante/vacante/add` | Crear una nueva reserva de vacante |
 
 ## Documentación
 

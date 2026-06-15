@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
-@FeignClient(name = "tesoreria-core-service")
+@FeignClient(name = "tesoreria-core-service", contextId = "campanhaClient")
 public interface CampanhaFeignClient {
 
-    @PostMapping("/api/tesoreria/umhub/campanha/")
+    @PostMapping("/api/tesoreria/core/umhub/campanha/")
     BackendCampanhaResponse createCampanha(@RequestBody BackendCampanhaRequest request);
 
-    @PutMapping("/api/tesoreria/umhub/campanha/{campanhaId}")
+    @PutMapping("/api/tesoreria/core/umhub/campanha/{campanhaId}")
     BackendCampanhaResponse updateCampanha(@PathVariable("campanhaId") UUID campanhaId, @RequestBody BackendCampanhaRequest request);
 }
