@@ -14,11 +14,12 @@ flowchart LR
     subgraph "Application Layer"
         SVC[ReservaVacanteService]
         CUC[CreateReservaVacanteUseCaseImpl]
+        SUC[GetReservaVacanteStatusUseCaseImpl]
     end
 
     subgraph "Domain Layer"
         MODEL[ReservaVacante Model]
-        IN[CreateReservaVacanteUseCase]
+        IN[CreateReservaVacanteUseCase<br/>GetReservaVacanteStatusUseCase]
         OUT[ReservaVacanteExternalService]
     end
 
@@ -27,7 +28,9 @@ flowchart LR
     MAP --> MODEL
     CTRL --> SVC
     SVC --> CUC
+    SVC --> SUC
     CUC --> IN
+    SUC --> IN
     IN --> OUT
     OUT --> ADAPT
     ADAPT --> FEIGN

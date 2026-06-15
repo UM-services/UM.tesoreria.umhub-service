@@ -18,7 +18,8 @@ public class CampanhaFeignClientAdapter implements CampanhaExternalService {
         BackendCampanhaRequest request = BackendCampanhaRequest.builder()
                 .campanhaId(campanha.getId())
                 .nombre(campanha.getNombre())
-                .activa((byte) 1) // Default to active (1)
+                .valorReserva(campanha.getValorReserva())
+                .activa((byte) 1)
                 .build();
 
         BackendCampanhaResponse response = feignClient.createCampanha(request);
@@ -30,6 +31,7 @@ public class CampanhaFeignClientAdapter implements CampanhaExternalService {
         return Campanha.builder()
                 .id(response.getCampanhaId())
                 .nombre(response.getNombre())
+                .valorReserva(response.getValorReserva())
                 .estado(response.getActiva() != null && response.getActiva() == 1 ? "activa" : "inactiva")
                 .creadoEn(response.getCreated())
                 .build();
@@ -40,7 +42,8 @@ public class CampanhaFeignClientAdapter implements CampanhaExternalService {
         BackendCampanhaRequest request = BackendCampanhaRequest.builder()
                 .campanhaId(id)
                 .nombre(campanha.getNombre())
-                .activa((byte) 1) // Default to active (1)
+                .valorReserva(campanha.getValorReserva())
+                .activa((byte) 1)
                 .build();
 
         BackendCampanhaResponse response = feignClient.updateCampanha(id, request);
@@ -52,6 +55,7 @@ public class CampanhaFeignClientAdapter implements CampanhaExternalService {
         return Campanha.builder()
                 .id(response.getCampanhaId())
                 .nombre(response.getNombre())
+                .valorReserva(response.getValorReserva())
                 .estado(response.getActiva() != null && response.getActiva() == 1 ? "activa" : "inactiva")
                 .creadoEn(response.getCreated())
                 .build();
