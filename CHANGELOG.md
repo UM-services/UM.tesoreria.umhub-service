@@ -5,6 +5,12 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-19
+
+### Added
+
+- Nuevo campo `importe` (BigDecimal) en el modelo de dominio `ReservaVacante`, propagado a través de DTOs (`BackendReservaVacanteRequest`, `BackendReservaVacanteResponse`, `ReservaVacanteRequest`, `ReservaVacanteWrappedResponse`), mapper (`ReservaVacanteDtoMapper`) y adaptador Feign (`ReservaVacanteFeignClientAdapter`), tanto en el flujo de creación como en el de consulta de estado.
+
 ## [0.5.0] - 2026-06-15
 
 ### Added

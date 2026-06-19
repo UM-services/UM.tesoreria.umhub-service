@@ -22,6 +22,7 @@ public class ReservaVacanteFeignClientAdapter implements ReservaVacanteExternalS
                 .apellido(domain.getApellido())
                 .email(domain.getEmail())
                 .campanhaId(domain.getCampanhaId())
+                .importe(domain.getImporte())
                 .build();
 
         BackendReservaVacanteResponse response = feignClient.createReservaVacante(request);
@@ -39,9 +40,10 @@ public class ReservaVacanteFeignClientAdapter implements ReservaVacanteExternalS
                 .email(response.getEmail())
                 .campanhaId(response.getCampanhaId())
                 .status(response.getEstado())
+                .importe(response.getImporte())
+                .initPoint(response.getInitPoint())
                 .creadoEn(response.getCreated())
                 .actualizadoEn(response.getUpdated())
-                .initPoint(response.getInitPoint())
                 .build();
     }
 
@@ -62,9 +64,10 @@ public class ReservaVacanteFeignClientAdapter implements ReservaVacanteExternalS
                 .email(response.getEmail())
                 .campanhaId(response.getCampanhaId())
                 .status(response.getEstado())
+                .initPoint(response.getInitPoint())
+                .importe(response.getImporte())
                 .creadoEn(response.getCreated())
                 .actualizadoEn(response.getUpdated())
-                .initPoint(response.getInitPoint())
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -26,4 +27,6 @@ public class ReservaVacanteRequest {
 
     @JsonProperty("campanha_id")
     private UUID campanhaId;
+
+    private BigDecimal importe;
 }
