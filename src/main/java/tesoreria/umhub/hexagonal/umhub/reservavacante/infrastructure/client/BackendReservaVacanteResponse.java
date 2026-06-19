@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ public class BackendReservaVacanteResponse {
     private String email;
     private UUID campanhaId;
     private String estado;
+    private BigDecimal importe;
     private String initPoint;
     private LocalDateTime created;
     private LocalDateTime updated;

@@ -1,6 +1,8 @@
 package tesoreria.umhub.hexagonal.umhub.reservavacante.domain.model;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,6 +20,7 @@ public class ReservaVacante {
     private String email;
     private UUID campanhaId;
     private String status;
+    private BigDecimal importe;
     private String initPoint;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;

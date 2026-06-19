@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -41,6 +42,8 @@ public class ReservaVacanteWrappedResponse {
 
         @JsonProperty("init_point")
         private String initPoint;
+
+        private BigDecimal importe;
 
         @JsonProperty("creado_en")
         private String creadoEn;
