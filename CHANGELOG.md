@@ -5,6 +5,25 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-13
+
+### Added
+
+- Nuevo consumer Kafka `PaymentProcessedConsumer` que escucha eventos `payment-processed` en el topic de Kafka, procesando notificaciones de pago aprobado para reservas de vacante.
+- Nuevo puerto de dominio `ReservaVacanteNotificationService` para notificaciones de pago.
+- Nuevo adaptador Feign `ReservaVacanteNotificationFeignAdapter` que envía notificaciones de pago al webhook de n8n (`/webhook/mercado-pago`).
+- Nuevo cliente Feign `ReservaVacanteNotificationFeignClient` para integración con n8n webhook.
+- Nuevo DTO `PaymentProcessedEvent` que modela los eventos de pago procesado recibidos desde Kafka.
+- Nuevo DTO `N8nNotificationPayload` con modelo de payload para notificaciones a n8n, incluyendo `PagoDetails` para información detallada del pago.
+- Configuración del consumer Kafka (`KafkaConsumerConfig`) con deserialización JSON, manejo de errores y paquete de confianza para `PaymentProcessedEvent`.
+- Dependencia `spring-kafka` agregada al proyecto.
+- Configuración de Kafka (`spring.kafka.bootstrap-servers`, `spring.kafka.consumer.group-id`) en `bootstrap.yml`.
+- Configuración de n8n webhook URL (`app.n8n.webhook-url`) en `bootstrap.yml`.
+
+### Changed
+
+- Test `UmHubApplicationTests` actualizado para desactivar auto-startup de Kafka y configurar bootstrap-servers de prueba.
+
 ## [0.6.0] - 2026-06-19
 
 ### Added

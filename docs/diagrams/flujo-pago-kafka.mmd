@@ -1,0 +1,21 @@
+```mermaid
+sequenceDiagram
+    participant MP as Mercado Pago
+    participant KAFKA as Kafka (payment-processed)
+    participant CONSUMER as PaymentProcessedConsumer
+    participant SVC as ReservaVacanteService
+    participant NOTIF as ReservaVacanteNotificationFeignAdapter
+    participant N8N as n8n Webhook
+
+    MP->>KAFKA: Publica PaymentProcessedEvent
+    KAFKA->>CONSUMER: Consume evento
+    CONSUMER->>CONSUMER: Valida reservaVacanteId != null
+    CONSUMER->>CONSUMER: Valida status == approved
+    CONSUMER->>SVC: getStatus(reservaVacanteId)
+    SVC-->>CONSUMER: ReservaVacante
+    CONSUMER->>CONSUMER: setStatus("pagado")
+    CONSUMER->>NOTIF: notifyPayment(reservaVacante, event)
+    NOTIF->>N8N: POST /webhook/mercado-pago (N8nNotificationPayload)
+    N8N-->>NOTIF: 200 OK
+    NOTIF-->>CONSUMER: Notificación enviada
+```

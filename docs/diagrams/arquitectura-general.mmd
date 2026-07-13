@@ -29,6 +29,10 @@ graph TD
             PORT2[Ports / Adapters]
             FEIGN2[ReservaVacanteFeignClient]
             ADAPT2[FeignClientAdapter]
+            KCON[PaymentProcessedConsumer]
+            KCONF[KafkaConsumerConfig]
+            NOTIF[ReservaVacanteNotificationFeignAdapter]
+            N8NCLIENT[ReservaVacanteNotificationFeignClient]
         end
         
         CACHE[Caffeine Cache]
@@ -37,8 +41,8 @@ graph TD
 
     subgraph "Servicios Externos"
         CORE[tesoreria-core-service]
-        MSVB[Microservicio B]
-        MSVC[Microservicio C]
+        KAFKA[Kafka Broker]
+        N8N[n8n Webhook]
     end
 
     CLIENT[Cliente] --> GW
@@ -62,7 +66,12 @@ graph TD
     REST --> CACHE
     REST --> ACT
 
+    KAFKA -->|payment-processed| KCON
+    KCON --> SVC2
+    KCON --> NOTIF
+    NOTIF --> N8NCLIENT
+    N8NCLIENT --> N8N
+
     REST -.->|Registro| CONSUL
     CORE -.->|Registro| CONSUL
-    MSVB -.->|Registro| CONSUL
-    MSVC -.->|Registro| CONSUL
+```

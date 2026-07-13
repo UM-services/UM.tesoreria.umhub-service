@@ -7,9 +7,9 @@
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
-![Version 0.6.0](https://img.shields.io/badge/Version-0.6.0-%23333?logo=semver)
+![Version 0.7.0](https://img.shields.io/badge/Version-0.7.0-%23333?logo=semver)
 
-Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña` y `ReservaVacante`, cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema.
+Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña` y `ReservaVacante`, cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema y Apache Kafka para el procesamiento asincrónico de eventos de pago, con notificaciones integradas al webhook de n8n.
 
 ## Stack Tecnológico
 
@@ -23,6 +23,8 @@ Microservicio de concentrador (hub) para el sistema de tesorería de la Universi
 - **OpenFeign + Feign HC5** — cliente HTTP declarativo con Apache HC5
 - **SpringDoc OpenAPI 3.0.3** — documentación interactiva de la API
 - **Caffeine Cache** — caché en memoria de alto rendimiento
+- **Apache Kafka** — consumer de eventos `payment-processed` para notificaciones de pago aprobado
+- **n8n Webhook** — notificación de pagos procesados vía Feign a n8n
 - **Actuator** — métricas y monitoreo
 - **Docker** — imagen multi-etapa con JRE 25 Alpine
 
@@ -78,6 +80,7 @@ La documentación incluye los siguientes diagramas Mermaid:
 | Flujo Creación Campaña | `docs/diagrams/flujo-creacion-campanha.mmd` | Secuencia HTTP de creación de campaña |
 | Flujo Reserva Vacante | `docs/diagrams/flujo-reservavacante.mmd` | Flujo hexagonal del módulo ReservaVacante |
 | Consulta Reserva Vacante | `docs/diagrams/flujo-consulta-reservavacante.mmd` | Secuencia HTTP de consulta de estado de reserva |
+| Flujo Pago Kafka | `docs/diagrams/flujo-pago-kafka.mmd` | Flujo de procesamiento de eventos de pago vía Kafka y notificación a n8n |
 
 ## Documentación
 

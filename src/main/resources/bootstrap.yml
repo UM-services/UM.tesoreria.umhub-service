@@ -5,6 +5,8 @@ app:
   consul:
     host: consul-service
     port: 8500
+  n8n:
+    webhook-url: ${APP_N8N_WEBHOOK_URL:https://n8n.hub.um.edu.ar}
 
 server:
   port: ${app.port}
@@ -25,6 +27,10 @@ spring:
       discovery:
         prefer-ip-address: true
         tags: tesoreria,umhub
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:tesoreria-umhub-group}
 
 logging:
   level:
