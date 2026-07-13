@@ -19,10 +19,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Dependencia `spring-kafka` agregada al proyecto.
 - Configuración de Kafka (`spring.kafka.bootstrap-servers`, `spring.kafka.consumer.group-id`) en `bootstrap.yml`.
 - Configuración de n8n webhook URL (`app.n8n.webhook-url`) en `bootstrap.yml`.
+- Plugin JaCoCo (`jacoco-maven-plugin` 0.8.13) para generación de reportes de cobertura de código.
+- Propiedades de SonarCloud (`sonar.organization`, `sonar.projectKey`, `sonar.host.url`, `sonar.coverage.jacoco.xmlReportPaths`) en `pom.xml`.
 
 ### Changed
 
 - Test `UmHubApplicationTests` actualizado para desactivar auto-startup de Kafka y configurar bootstrap-servers de prueba.
+- Corregido `artifactId` en `pom.xml` (`esoreria-umhub-service` → `umhub-service`).
 
 ## [0.6.0] - 2026-06-19
 
