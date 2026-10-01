@@ -1,27 +1,27 @@
 # UM Tesoreria Umhub Service
 
 ![Java 25](https://img.shields.io/badge/Java-25-%23ED8B00?logo=openjdk)
-![Spring Boot 4.1.0](https://img.shields.io/badge/Spring_Boot-4.1.0-%236DB33F?logo=springboot)
-![Spring Cloud 2025.1.2](https://img.shields.io/badge/Spring_Cloud-2025.1.2-%236DB33F?logo=spring)
+![Spring Boot 4.1.1](https://img.shields.io/badge/Spring_Boot-4.1.1-%236DB33F?logo=springboot)
+![Spring Cloud 2025.1.3](https://img.shields.io/badge/Spring_Cloud-2025.1.3-%236DB33F?logo=spring)
 ![Maven](https://img.shields.io/badge/Maven-3-%23C71A36?logo=apachemaven)
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
-![Version 0.7.0](https://img.shields.io/badge/Version-0.7.0-%23333?logo=semver)
+![Version 0.7.1](https://img.shields.io/badge/Version-0.7.1-%23333?logo=semver)
 
 Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña` y `ReservaVacante`, cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema y Apache Kafka para el procesamiento asincrónico de eventos de pago, con notificaciones integradas al webhook de n8n.
 
 ## Stack Tecnológico
 
 - **Java 25**
-- **Spring Boot 4.1.0**
-- **Spring Cloud 2025.1.2**
+- **Spring Boot 4.1.1**
+- **Spring Cloud 2025.1.3**
 - **Maven 3**
 - **API Key Authentication** — seguridad mediante header `X-API-Key`
 - **Arquitectura Hexagonal** — módulos `Campaña` y `ReservaVacante` con puertos y adaptadores
 - **Consul Discovery** — registro y descubrimiento de servicios
 - **OpenFeign + Feign HC5** — cliente HTTP declarativo con Apache HC5
-- **SpringDoc OpenAPI 3.0.3** — documentación interactiva de la API
+- **SpringDoc OpenAPI 3.1.0** — documentación interactiva de la API
 - **Caffeine Cache** — caché en memoria de alto rendimiento
 - **Apache Kafka** — consumer de eventos `payment-processed` para notificaciones de pago aprobado
 - **n8n Webhook** — notificación de pagos procesados vía Feign a n8n
@@ -84,7 +84,7 @@ La documentación incluye los siguientes diagramas Mermaid:
 
 ## Documentación
 
-Los diagramas Mermaid se convierten automáticamente a SVG mediante el pipeline CI/CD (`.github/workflows/docs.yml`) y se despliegan en GitHub Pages en cada push a `main`.
+Los diagramas Mermaid se convierten automáticamente a SVG mediante el pipeline CI/CD (`.github/workflows/generate-docs.yml`) y se despliegan en GitHub Pages en cada push a `main`.
 
 ## Versionado
 

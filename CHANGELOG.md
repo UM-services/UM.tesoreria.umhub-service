@@ -5,6 +5,21 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-10-01
+
+### Added
+
+- Nuevos pipelines de despliegue `.github/workflows/deploy-develop.yml` y `.github/workflows/deploy-staging.yml`: verificación con `mvn -B verify` (JDK 25), build y push de la imagen Docker etiquetada con el SHA del commit, y despliegue en los entornos `develop` y `staging` mediante runners self-hosted con GitHub Environments.
+- Guía `AGENTS.md` para agentes de IA con la estructura hexagonal sin persistencia, stack, comandos y convenciones del proyecto.
+
+### Changed
+
+- Spring Boot (parent) actualizado de `4.1.0` a `4.1.1`.
+- Spring Cloud actualizado de `2025.1.2` a `2025.1.3`.
+- `springdoc-openapi-starter-webmvc-ui` actualizado de `3.0.3` a `3.1.0`.
+- Dependencia de Kafka migrada de `spring-kafka` a `spring-boot-starter-kafka` (versionada por el parent de Spring Boot; sin cambio de comportamiento).
+- Banner de arranque (`src/main/resources/banner.txt`) renovado con nuevo arte ASCII.
+
 ## [0.7.0] - 2026-07-13
 
 ### Added
