@@ -2,6 +2,9 @@ app:
   port: ${APP_PORT:8080}
   logging: debug
   api-key: ${APP_API_KEY:default-secret-key}
+  rate-limit:
+    enabled: ${APP_RATE_LIMIT_ENABLED:true}
+    requests-per-minute: ${APP_RATE_LIMIT_PER_MINUTE:60}
   consul:
     host: consul-service
     port: 8500
