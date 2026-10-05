@@ -148,6 +148,18 @@ jobs:
                   </div>
               </div>
           EOF
+
+          # --- Inject Persona/Deuda query sequence diagram ---
+          cat >> docs/index.html << 'EOF'
+              <div id="consulta-persona-deuda-flow" class="section">
+                  <h2>🔎 Diagrama de Secuencia: Consulta de Persona y Deuda por Documento</h2>
+                  <div class="mermaid">
+          EOF
+          sed '1d;$d' docs/diagrams/flujo-consulta-persona-deuda.mmd >> docs/index.html
+          cat >> docs/index.html << 'EOF'
+                  </div>
+              </div>
+          EOF
           
           # --- Write HTML footer (dependencies, milestones, scripts) ---
           cat >> docs/index.html << 'EOF'

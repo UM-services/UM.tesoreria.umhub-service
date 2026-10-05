@@ -7,6 +7,7 @@ graph TD
 
     subgraph "umhub-service"
         AKF[API Key Filter]
+        RL[Rate Limit Filter]
         REST[API REST - Spring Web]
         
         subgraph "Campaña Module (Hexagonal)"
@@ -35,6 +36,17 @@ graph TD
             N8NCLIENT[ReservaVacanteNotificationFeignClient]
         end
         
+        subgraph "Consulta Module (Hexagonal)"
+            direction TB
+            CTRL3[ConsultaPersonaController]
+            SVC3[ConsultaService]
+            UC3[Use Cases]
+            DOM3[Domain Model]
+            PORT3[Ports / Adapters]
+            ADAPT3[ConsultaFeignClientAdapter]
+            FEIGN3[ConsultaFeignClient]
+        end
+        
         CACHE[Caffeine Cache]
         ACT[Actuator]
     end
@@ -47,22 +59,31 @@ graph TD
 
     CLIENT[Cliente] --> GW
     GW --> AKF
-    AKF -->|X-API-Key válida| REST
+    AKF -->|X-API-Key válida| RL
     AKF -->|X-API-Key inválida| REJ[401 Unauthorized]
+    RL -->|Dentro del límite| REST
+    RL -->|Límite excedido| RL429[429 Too Many Requests]
     REST --> CTRL
     REST --> CTRL2
+    REST --> CTRL3
     CTRL --> SVC
     CTRL2 --> SVC2
+    CTRL3 --> SVC3
     SVC --> UC
     SVC2 --> UC2
+    SVC3 --> UC3
     UC --> PORT
     UC2 --> PORT2
+    UC3 --> PORT3
     PORT --> ADAPT
     PORT2 --> ADAPT2
+    PORT3 --> ADAPT3
     ADAPT --> FEIGN
     ADAPT2 --> FEIGN2
+    ADAPT3 --> FEIGN3
     FEIGN --> CORE
     FEIGN2 --> CORE
+    FEIGN3 --> CORE
     REST --> CACHE
     REST --> ACT
 
