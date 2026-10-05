@@ -5,6 +5,23 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-10-04
+
+### Added
+
+- Nuevo slice hexagonal `consulta` (bridge de solo lectura hacia `tesoreria-core-service`): endpoints `GET /api/tesoreria/umhub/persona/{numeroDocumento}` (identidad, tipos de documento, contacto —emails, teléfono, celular— y domicilio con provincia/localidad resueltas) y `GET /api/tesoreria/umhub/persona/{numeroDocumento}/deuda` (deuda agregada por chequera; `?extended=true` agrega vencimientos con `init_point` de MercadoPago). La consulta usa **sólo el número de documento** (6-10 dígitos, validado en el hub); el tipo se resuelve en core agregando todos los tipos del mismo titular. Respuestas envueltas `{ success, data, mensaje }` en `snake_case`, protegidas automáticamente por `ApiKeyFilter` (`X-API-Key`).
+- `ConsultaFeignClient` (`contextId = "consultaClient"`) con configuración propia `ConsultaFeignClientConfig`: timeouts 5 s connect / 15 s read (no hereda los 200 s globales). El 404 del backend se traduce a `404` envuelto `{success:false}`; otros fallos Feign a `502` con mensaje genérico.
+- Caché Caffeine en `ConsultaFeignClientAdapter` (TTL 60 s, máximo 500 entradas por tipo de consulta, sólo resultados positivos): amortigua consultas repetidas y el costo de recálculo de deuda.
+- `RateLimitFilter` (una API Key única, ventana fija de 1 minuto por cliente —`X-Forwarded-For` o IP—) limitado a `/api/tesoreria/umhub/persona`: `429` con `Retry-After` al exceder `app.rate-limit.requests-per-minute` (default 60). Configurables vía `APP_RATE_LIMIT_PER_MINUTE` y `APP_RATE_LIMIT_ENABLED`. Mitiga enumeración de documentos sobre endpoints que exponen PII de contacto.
+- Diagrama `docs/diagrams/flujo-consulta-persona-deuda.mmd` y su inyección en el pipeline `generate-docs.yml`.
+- `docs/diagrams/arquitectura-general.mmd` actualizado: slice `consulta` (controller → service → use cases → ports → adaptador → Feign → core) y `RateLimitFilter` en la cadena de filtros con su rama `429`.
+- Pruebas: `ConsultaFeignClientAdapterTest` (mapeo, 404→empty, caché positivo/negativo, propagación de errores), `ConsultaDtoMapperTest` (incluye verificación de claves `snake_case` en el JSON), `ConsultaPersonaControllerTest` (contrato, 404/400/502, `extended`) y `RateLimitFilterTest`.
+- Dependencia de test `spring-boot-starter-webmvc-test` (necesaria para `@WebMvcTest` en Spring Boot 4).
+
+### Changed
+
+- `ApiKeyFilter` ahora se anota con `@Order(1)` para garantizar que se evalúa antes de `RateLimitFilter` (`@Order(2)`).
+
 ## [0.7.1] - 2026-10-01
 
 ### Added

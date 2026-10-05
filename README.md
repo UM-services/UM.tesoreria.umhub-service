@@ -7,9 +7,9 @@
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
-![Version 0.7.1](https://img.shields.io/badge/Version-0.7.1-%23333?logo=semver)
+![Version 0.8.0](https://img.shields.io/badge/Version-0.8.0-%23333?logo=semver)
 
-Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña` y `ReservaVacante`, cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema y Apache Kafka para el procesamiento asincrónico de eventos de pago, con notificaciones integradas al webhook de n8n.
+Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña`, `ReservaVacante` y `Consulta` (datos personales + deuda por número de documento), cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema y Apache Kafka para el procesamiento asincrónico de eventos de pago, con notificaciones integradas al webhook de n8n.
 
 ## Stack Tecnológico
 
@@ -18,7 +18,7 @@ Microservicio de concentrador (hub) para el sistema de tesorería de la Universi
 - **Spring Cloud 2025.1.3**
 - **Maven 3**
 - **API Key Authentication** — seguridad mediante header `X-API-Key`
-- **Arquitectura Hexagonal** — módulos `Campaña` y `ReservaVacante` con puertos y adaptadores
+- **Arquitectura Hexagonal** — módulos `Campaña`, `ReservaVacante` y `Consulta` con puertos y adaptadores
 - **Consul Discovery** — registro y descubrimiento de servicios
 - **OpenFeign + Feign HC5** — cliente HTTP declarativo con Apache HC5
 - **SpringDoc OpenAPI 3.1.0** — documentación interactiva de la API
@@ -69,6 +69,24 @@ Todos los endpoints requieren el header `X-API-Key` con la clave configurada.
 | `POST` | `/api/tesoreria/umhub/reservaVacante/vacante/add` | Crear una nueva reserva de vacante |
 | `GET` | `/api/tesoreria/umhub/reservaVacante/reserva/status/{id}` | Consultar el estado de una reserva de vacante |
 
+### Consulta de Persona y Deuda (solo lectura)
+
+Datos personales + domicilio/contacto y detalle de deuda usando **sólo el número de documento**
+(6 a 10 dígitos; el backend agrega todos los tipos registrados bajo el mismo número).
+Formato de respuesta: `{ "success": bool, "data": {...}, "mensaje": "..." }` con claves en `snake_case`.
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/tesoreria/umhub/persona/{numeroDocumento}` | Identidad, tipos de documento, contacto (emails, teléfono, celular) y domicilio |
+| `GET` | `/api/tesoreria/umhub/persona/{numeroDocumento}/deuda` | Deuda agregada por chequera (`?extended=true` agrega vencimientos con `init_point` de MercadoPago) |
+
+**Rate limiting**: estos endpoints están limitados por ventana de 1 minuto (`app.rate-limit.requests-per-minute`,
+default 60, configurable vía `APP_RATE_LIMIT_PER_MINUTE`; desactivable con `APP_RATE_LIMIT_ENABLED=false`).
+Al excederlo se responde `429` con `Retry-After`.
+
+**PII**: la respuesta nunca incluye `password`, `cbu`, `cuit` ni datos de terceros (`emailPagador`);
+el filtrado ocurre en `tesoreria-core` (slice `umhub/consulta`).
+
 ## Diagramas de Arquitectura
 
 La documentación incluye los siguientes diagramas Mermaid:
@@ -80,6 +98,7 @@ La documentación incluye los siguientes diagramas Mermaid:
 | Flujo Creación Campaña | `docs/diagrams/flujo-creacion-campanha.mmd` | Secuencia HTTP de creación de campaña |
 | Flujo Reserva Vacante | `docs/diagrams/flujo-reservavacante.mmd` | Flujo hexagonal del módulo ReservaVacante |
 | Consulta Reserva Vacante | `docs/diagrams/flujo-consulta-reservavacante.mmd` | Secuencia HTTP de consulta de estado de reserva |
+| Consulta Persona y Deuda | `docs/diagrams/flujo-consulta-persona-deuda.mmd` | Secuencia HTTP de consulta por número de documento vía core |
 | Flujo Pago Kafka | `docs/diagrams/flujo-pago-kafka.mmd` | Flujo de procesamiento de eventos de pago vía Kafka y notificación a n8n |
 
 ## Documentación
