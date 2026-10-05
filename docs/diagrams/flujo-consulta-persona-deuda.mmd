@@ -1,0 +1,47 @@
+```mermaid
+sequenceDiagram
+    participant C as Cliente externo
+    participant GW as API Gateway
+    participant H as umhub-service
+    participant AKF as API Key Filter
+    participant RL as Rate Limit Filter
+    participant CC as ConsultaPersonaController
+    participant CA as ConsultaFeignClientAdapter
+    participant CORE as tesoreria-core-service
+
+    C->>GW: GET /api/tesoreria/umhub/persona/{numeroDocumento}
+    GW->>AKF: Validar X-API-Key
+    alt API Key inválida
+        AKF-->>GW: 401 Unauthorized
+        GW-->>C: Error de autenticación
+    else API Key válida
+        AKF->>RL: Continuar
+        RL->>RL: Ventana 1 min por cliente
+        alt Límite excedido
+            RL-->>C: 429 Too Many Requests (Retry-After)
+        else Dentro del límite
+            RL->>CC: number validado ^\d{6,10}$
+            alt Número inválido
+                CC-->>C: 400 {success:false}
+            else Número válido
+                CC->>CA: findPersona / findDeuda (caché Caffeine 60s)
+                alt Cache hit
+                    CA-->>CC: Dominio cacheado
+                else Cache miss
+                    CA->>CORE: OpenFeign GET /api/tesoreria/core/umhub/consulta/persona/...
+                    alt 404 backend
+                        CORE-->>CA: 404
+                        CA-->>C: 404 {success:false, mensaje: Persona no encontrada}
+                    else Fallo backend
+                        CORE-->>CA: error / timeout
+                        CA-->>C: 502 {success:false, mensaje genérico}
+                    else Éxito
+                        CORE-->>CA: ConsultaPersonaResponse / ConsultaDeudaResponse
+                        CA->>CA: Guardar en caché (sólo positivos)
+                        CA-->>C: 200 {success:true, data:{...snake_case}, mensaje}
+                    end
+                end
+            end
+        end
+    end
+```
