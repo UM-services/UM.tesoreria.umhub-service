@@ -1,117 +1,124 @@
 # AGENTS.md — um.tesoreria.umhub-service
 
-Guía para agentes de IA que trabajan en este repositorio.
+Guide for AI agents working in this repository.
 
-## Qué es este proyecto
+## What this project is
 
-Microservicio **concentrador (hub)** del sistema de tesorería de la Universidad de Mendoza. **No tiene base de datos**: expone una API REST protegida por API Key y delega toda la persistencia/lógica de negocio en otros microservicios del ecosistema mediante **OpenFeign**, además de consumir eventos de pago asincrónicos con **Kafka** y notificar al webhook de **n8n**.
+**Concentrator (hub)** microservice of the Universidad de Mendoza treasury system. **It has no database**: it exposes a REST API protected by API Key and delegates all persistence/business logic to other microservices in the ecosystem via **OpenFeign**, in addition to consuming asynchronous payment events with **Kafka** and notifying the **n8n** webhook.
 
-Sigue **Arquitectura Hexagonal** (puertos y adaptadores) con dos slices (bounded contexts): `campanha` y `reservavacante`.
+It follows **Hexagonal Architecture** (ports and adapters) with two slices (bounded contexts): `campanha` and `reservavacante`.
 
 ## Stack
 
-- **Java 25** (no usar APIs anteriores si existe alternativa moderna) + **Lombok**
-- **Spring Boot 4.1.x** (parent `spring-boot-starter-parent`; Jackson es `tools.jackson.*`, NO `com.fasterxml.jackson.databind` en configuración nueva — ver nota en Kafka)
+- **Java 25** (do not use older APIs when a modern alternative exists) + **Lombok**
+- **Spring Boot 4.1.x** (parent `spring-boot-starter-parent`; Jackson is `tools.jackson.*`, NOT `com.fasterxml.jackson.databind` in new configuration — see the note under Kafka)
 - **Spring Cloud 2025.1.3**: Consul discovery, OpenFeign (+ feign-hc5)
 - **Kafka** (`spring-boot-starter-kafka`), **Caffeine cache**, **SpringDoc OpenAPI**, **Actuator**
-- **Maven** con wrapper (`./mvnw`); **JaCoCo** + **SonarCloud** (organización `um-services`)
-- Empaquetado Docker multi-etapa (JRE 25 Alpine, usuario no privilegiado)
+- **Maven** with wrapper (`./mvnw`); **JaCoCo** + **SonarCloud** (organization `um-services`)
+- Multi-stage Docker packaging (JRE 25 Alpine, non-root user)
 
-## Comandos
+## Commands
 
 ```bash
-./mvnw clean package          # compilar + tests + JAR (target/um.tesoreria.umhub-service.jar)
-./mvnw spring-boot:run        # ejecutar localmente (requiere Consul/Kafka o ajustar bootstrap.yml)
-./mvnw test                   # solo tests
-./mvnw -B verify              # como lo hace CI (antes de Sonar)
+./mvnw clean package          # build + tests + JAR (target/um.tesoreria.umhub-service.jar)
+./mvnw spring-boot:run        # run locally (requires Consul/Kafka or adjust bootstrap.yml)
+./mvnw test                   # tests only
+./mvnw -B verify              # as CI does it (before Sonar)
 ```
 
-Requisitos locales: JDK 25 y Maven vía wrapper. Consul (`consul-service:8500` por defecto) y Kafka (`kafka:9092` por defecto) se esperan en docker-compose del ecosistema.
+Local requirements: JDK 25 and Maven via wrapper. Consul (`consul-service:8500` by default) and Kafka (`kafka:9092` by default) are expected in the ecosystem docker-compose.
 
-## Estructura y arquitectura hexagonal
+## Structure and hexagonal architecture
 
-Paquete raíz: `tesoreria.umhub`. Slices en `tesoreria.umhub.hexagonal.umhub.{slice}`:
+Root package: `tesoreria.umhub`. Slices in `tesoreria.umhub.hexagonal.umhub.{slice}`:
 
 ```
-{slice}/                          (ej. campanha, reservavacante)
+{slice}/                          (e.g. campanha, reservavacante)
 ├── domain/
-│   ├── model/{Entity}.java        POJO Lombok, sin framework (solo java.* + Lombok)
+│   ├── model/{Entity}.java        Lombok POJO, no framework (only java.* + Lombok)
 │   └── ports/
-│       ├── in/{Action}{Entity}UseCase.java   un interface por caso de uso
-│       └── out/{Entity}ExternalService.java  puerto de salida → otro microservicio
-│                                   (también {Entity}NotificationService p. ej. n8n)
+│       ├── in/{Action}{Entity}UseCase.java   one interface per use case
+│       └── out/{Entity}ExternalService.java  outbound port → another microservice
+│                                   (also {Entity}NotificationService, e.g. n8n)
 ├── application/
-│   ├── usecases/{Action}{Entity}UseCaseImpl.java  @Component, delega al puerto out
-│   └── service/{Entity}Service.java               @Service facade, inyecta UseCase(s)
+│   ├── usecases/{Action}{Entity}UseCaseImpl.java  @Component, delegates to the outbound port
+│   └── service/{Entity}Service.java               @Service facade, injects UseCase(s)
 └── infrastructure/
-    ├── client/                     adaptador Feign: {Entity}FeignClientAdapter @Component
-    │                               implementa el puerto out; {Entity}FeignClient @FeignClient;
-    │                               DTOs Backend{Entity}Request/Response del contrato externo
+    ├── client/                     Feign adapter: {Entity}FeignClientAdapter @Component
+    │                               implements the outbound port; {Entity}FeignClient @FeignClient;
+    │                               DTOs Backend{Entity}Request/Response from the external contract
     ├── web/
-    │   ├── controller/{Entity}Controller.java   @RestController, solo DTOs
+    │   ├── controller/{Entity}Controller.java   @RestController, DTOs only
     │   ├── dto/{Entity}Request.java, {Entity}WrappedResponse.java
-    │   └── mapper/{Entity}DtoMapper.java        Request↔dominio↔Response
+    │   └── mapper/{Entity}DtoMapper.java        Request↔domain↔Response
     └── kafka/                      (reservavacante) PaymentProcessedConsumer + PaymentProcessedEvent
 ```
 
-**Diferencia clave vs. la skill `hexagonal-arch` genérica**: este servicio NO tiene `infrastructure/persistence/` (no hay JPA, ni `Auditable`, ni `{Entity}Entity`). Los puertos de salida se implementan con adaptadores Feign en `infrastructure/client/` (y Kafka para inbound asíncrono). Aplicar igualmente las reglas estrictas de la skill:
+**Key difference vs. the generic `hexagonal-arch` skill**: this service has NO `infrastructure/persistence/` (no JPA, no `Auditable`, no `{Entity}Entity`). Outbound ports are implemented with Feign adapters in `infrastructure/client/` (and Kafka for asynchronous inbound). Still apply the skill's strict rules:
 
-- Dependencias apuntan hacia adentro: `infrastructure → application → domain`. `domain/` es 100% puro (solo `java.*` + Lombok). `application/` importa solo `domain/` + anotaciones Spring/Lombok.
-- Nunca filtrar tipos de infraestructura (DTOs `Backend*`, tipos Feign) hacia `application/` o `domain/`.
-- Los controllers hablan solo DTOs web (`{Entity}Request` / `{Entity}WrappedResponse`), nunca el modelo de dominio directamente en el body.
-- No puentes de compatibilidad ni sobrecargas "legacy". Si endurecer un slice rompe consumidores, dejarlos fallar y reportarlos.
-- **Dependencias cross-slice**: si un slice necesita tipos de otro slice, NO decidir unilateralmente — detenerse y preguntar al usuario (ver skill `hexagonal-arch`).
+- Dependencies point inward: `infrastructure → application → domain`. `domain/` is 100% pure (only `java.*` + Lombok). `application/` imports only `domain/` + Spring/Lombok annotations.
+- Never leak infrastructure types (DTOs `Backend*`, Feign types) into `application/` or `domain/`.
+- Controllers speak only web DTOs (`{Entity}Request` / `{Entity}WrappedResponse`), never the domain model directly in the body.
+- No compatibility bridges or "legacy" overloads. If making a slice strict breaks consumers, leave them failing and report it.
+- **Cross-slice dependencies**: if a slice needs types from another slice, do NOT decide unilaterally — stop and ask the user (see the `hexagonal-arch` skill).
 
-## Convenciones de código
+## Code conventions
 
-- Inyección por constructor con `@RequiredArgsConstructor` (Lombok) en todos los componentes Spring.
-- Modelos de dominio y DTOs: Lombok `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor` (o `@Data` en DTOs anidados).
-- IDs: `UUID` (provienen del backend `tesoreria-core-service`).
-- **Dominio/nombre comercial en español** (`nombre`, `valorReserva`, `creadoEn`, `mensaje`, `estado`); logs y nombres técnicos en inglés. Comentarios existentes en ambos idiomas — mantener coherencia con el archivo.
-- Logs con `@Slf4j`.
-- Mappers: método por conversión (`toDomain`, `toWrappedResponse`, etc.), `null` de entrada → `null` de salida; respetar la regla de propagación de `@Builder.Default` de la skill.
+- Constructor injection with `@RequiredArgsConstructor` (Lombok) in all Spring components.
+- Domain models and DTOs: Lombok `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor` (or `@Data` on nested DTOs).
+- IDs: `UUID` (they come from the `tesoreria-core-service` backend).
+- **Domain/business names in Spanish** (`nombre`, `valorReserva`, `creadoEn`, `mensaje`, `estado`); logs and technical names in English. Existing comments are in both languages — stay consistent with the file.
+- Logs with `@Slf4j`.
+- Mappers: one method per conversion (`toDomain`, `toWrappedResponse`, etc.), `null` in → `null` out; respect the skill's `@Builder.Default` propagation rule.
 
-## API y seguridad
+## API and security
 
-- Rutas públicas del hub: `/api/tesoreria/umhub/{campanha|reservaVacante}/...` (ver tabla completa en README.md).
-- Rutas del backend vía Feign: `/api/tesoreria/core/umhub/...` hacia el servicio `tesoreria-core-service` (resuelto por Consul). `@FeignClient` siempre con `contextId` único cuando hay varios clients hacia el mismo servicio.
-- **Autenticación**: header `X-API-Key` validado por `ApiKeyFilter` (`app.api-key`). Exentos: `/actuator`, `/swagger-ui`, `/v3/api-docs`. Cualquier endpoint nuevo queda protegido automáticamente.
-- Formato de respuesta: `{ "success": bool, "data": {...}, "mensaje": "..." }` (`{Entity}WrappedResponse`); campos JSON del contrato externo/respuestas en **snake_case** vía `@JsonProperty`.
-- Swagger UI con seguridad `X-API-Key` declarada en `OpenApiConfig`.
+- Public hub routes: `/api/tesoreria/umhub/{campanha|reservaVacante}/...` (see the full table in README.md).
+- Backend routes via Feign: `/api/tesoreria/core/umhub/...` to the `tesoreria-core-service` service (resolved by Consul). `@FeignClient` always with a unique `contextId` when there are several clients to the same service.
+- **Authentication**: header `X-API-Key` validated by `ApiKeyFilter` (`app.api-key`). Exempt: `/actuator`, `/swagger-ui`, `/v3/api-docs`. Any new endpoint is automatically protected.
+- Response format: `{ "success": bool, "data": {...}, "mensaje": "..." }` (`{Entity}WrappedResponse`); external-contract/response JSON fields in **snake_case** via `@JsonProperty`.
+- Swagger UI with `X-API-Key` security declared in `OpenApiConfig`.
 
 ## Kafka / n8n
 
-- Topic consumido: `payment-processed`, groupId `tesoreria-umhub-group` (override por `SPRING_KAFKA_*`).
-- `KafkaConsumerConfig`: deserializador JSON con `ErrorHandlingDeserializer`, `FAIL_ON_UNKNOWN_PROPERTIES` deshabilitado, trusted packages `*`, mapeo de tipo header `um.tesoreria.mercadopago.service.domain.event.PaymentProcessedEvent` → `PaymentProcessedEvent` local. Nota: usa `tools.jackson` (Jackson 3, Spring Boot 4).
-- El consumer filtra: ignora eventos con `reservaVacanteId == null` y estados != `approved`; los errores se loguean y se tragán (retry fijo 1s x2 por `DefaultErrorHandler`) — **no propagar excepciones que maten el listener**.
-- Notificación a n8n: Feign client con `url = "${app.n8n.webhook-url}"` hacia `POST /webhook/mercado-pago`.
+- Consumed topic: `payment-processed`, groupId `tesoreria-umhub-group` (override with `SPRING_KAFKA_*`).
+- `KafkaConsumerConfig`: JSON deserializer with `ErrorHandlingDeserializer`, `FAIL_ON_UNKNOWN_PROPERTIES` disabled, trusted packages `*`, type-header mapping `um.tesoreria.mercadopago.service.domain.event.PaymentProcessedEvent` → local `PaymentProcessedEvent`. Note: it uses `tools.jackson` (Jackson 3, Spring Boot 4).
+- The consumer filters: it ignores events with `reservaVacanteId == null` and states != `approved`; errors are logged and swallowed (fixed 1s x2 retry via `DefaultErrorHandler`) — **do not propagate exceptions that would kill the listener**.
+- n8n notification: Feign client with `url = "${app.n8n.webhook-url}"` to `POST /webhook/mercado-pago`.
 
-## Configuración
+## Configuration
 
-- Único archivo: `src/main/resources/bootstrap.yml` (no crear `application.yml`).
-- Variables de entorno: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`; Consul en `consul-service:8500`.
-- `@EnableFeignClients(basePackages = "tesoreria.umhub")` en `UmHubConfiguration`.
+- Single file: `src/main/resources/bootstrap.yml` (do not create `application.yml`).
+- Environment variables: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`; Consul at `consul-service:8500`.
+- `@EnableFeignClients(basePackages = "tesoreria.umhub")` in `UmHubConfiguration`.
 
 ## Tests
 
-- Cobertura actual mínima: `UmHubApplicationTests` (contextLoads, `@SpringBootTest` con `spring.kafka.listener.auto-startup=false` y bootstrap-servers fake — **mantener estas properties o el contexto no levanta sin Kafka**) y `HelloTest` (controller smoke-test en `src/main`, no es un JUnit test).
-- Tests nuevos: JUnit 5 + Spring Boot Test, unitarios para use cases/mappers (Mockito viene en `spring-boot-starter-test`); ubicar en `src/test/java/tesoreria/umhub/...` espejando el slice. SonarCloud mide cobertura con JaCoCo (`target/site/jacoco/jacoco.xml`).
+- Current minimum coverage: `UmHubApplicationTests` (contextLoads, `@SpringBootTest` with `spring.kafka.listener.auto-startup=false` and a fake bootstrap-servers — **keep these properties or the context will not start without Kafka**) and `HelloTest` (controller smoke test in `src/main`, not a JUnit test).
+- New tests: JUnit 5 + Spring Boot Test, unit tests for use cases/mappers (Mockito comes with `spring-boot-starter-test`); place them in `src/test/java/tesoreria/umhub/...` mirroring the slice. SonarCloud measures coverage with JaCoCo (`target/site/jacoco/jacoco.xml`).
 
-## Documentación y versionado (obligatorio en cada feature)
+## Documentation and versioning (mandatory on every feature)
 
-1. **README.md**: badges de versión, tabla de endpoints, tabla de diagramas.
-2. **CHANGELOG.md**: formato Keep a Changelog; subir versión **SemVer** en `pom.xml` (`<version>`) y en el badge del README en cada release.
-3. **docs/diagrams/*.mmd**: Mermaid (arquitectura general, flujos hexagonales, secuencias). Si se agrega/cambia un slice o flujo, actualizar/crear el `.mmd` correspondiente; el pipeline `generate-docs.yml` los inyecta en `docs/index.html` (GitHub Pages) — si se crea un diagrama nuevo, también se debe agregar su bloque de inyección al workflow.
+1. **README.md**: version badges, endpoint table, diagram table.
+2. **CHANGELOG.md**: Keep a Changelog format; bump the **SemVer** version in `pom.xml` (`<version>`) and in the README badge on each release.
+3. **docs/diagrams/*.mmd**: Mermaid (general architecture, hexagonal flows, sequences). If a slice or flow is added/changed, update/create the corresponding `.mmd`; the `generate-docs.yml` pipeline injects them into `docs/index.html` (GitHub Pages) — if a new diagram is created, its injection block must also be added to the workflow.
 
 ## Git
 
-- Ramas: `main` (released) y `develop`; ramas de trabajo nombradas `{número-issue}-{descripción}` (kebab-case, a veces con prefijo `feat`/`fix`).
-- Commits: **Conventional Commits** en inglés, con scope de slice cuando aplica: `feat(reservavacante): add Kafka payment processing and n8n notification`.
-- Cambios llegan a `main` vía PR (merge commits visibles en historia); CI en PR: `maven.yml` (build + Sonar + push imagen Docker a Docker Hub con sufijo/etiquetas semver) y `generate-docs.yml`.
+- Branches: `main` (released) and `develop`; working branches named `{issue-number}-{description}` (kebab-case, sometimes with a `feat`/`fix` prefix).
+- Commits: **Conventional Commits** in English, with a slice scope when applicable: `feat(reservavacante): add Kafka payment processing and n8n notification`.
+- Changes reach `main` via PR (merge commits visible in history); CI on PR: `maven.yml` (build + Sonar + push Docker image to Docker Hub with suffix/semver tags) and `generate-docs.yml`.
 
-## Reglas finales para el agente
+## Final rules for the agent
 
-- Al crear un slice nuevo, seguir la estructura de `campanha`/`reservavacante` y las convenciones de nombres de la skill `hexagonal-arch` (adaptada: puertos out = servicios externos, no repos JPA).
-- Verificar que el proyecto compile con `./mvnw -q compile` (y `./mvnw test` si hay tests) antes de dar por terminada una tarea.
-- No introducir dependencias de base de datos ni Spring Security (la seguridad es el filtro de API Key propio).
-- Si una regla de este archivo entra en conflicto con la skill `hexagonal-arch`, prevalece la estructura real de este repo (sin persistencia) para `infrastructure/`; el resto de las reglas estrictas se mantiene.
+- When creating a new slice, follow the structure of `campanha`/`reservavacante` and the naming conventions of the `hexagonal-arch` skill (adapted: outbound ports = external services, not JPA repositories).
+- Verify the project compiles with `./mvnw -q compile` (and `./mvnw test` if there are tests) before considering a task done.
+- Do not introduce database dependencies or Spring Security (security is the service's own API Key filter).
+- If a rule in this file conflicts with the `hexagonal-arch` skill, the real structure of this repo (no persistence) prevails for `infrastructure/`; the rest of the strict rules still apply.
+
+## Permissions (feature gating)
+
+The permission system is **centralized** and lives in `tesoreria-core-service` (catalog `permiso`, roles, role×permission matrix, overrides and the effective bundle `GET /api/tesoreria/core/permisoEfectivo/usuario/{userId}`). Keys follow the `modulo.accion` convention.
+
+- If you add a new feature that requires a permission: register the key in the catalog (from the administrador module) and wire it in the **new** code. Server-side enforcement (`@RequierePermiso`) lives in core; this service has **none**.
+- **Golden rule:** never add or change security on existing endpoints or legacy code. The legacy system sends no token or permissions: any enforcement there breaks it. When in doubt, stop and ask.
