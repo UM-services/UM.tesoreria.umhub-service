@@ -5,6 +5,17 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-10-19
+
+### Changed
+
+- `AGENTS.md` traducido íntegramente al inglés y ampliado con la sección **Permissions (feature gating)**: el sistema de permisos es centralizado en `tesoreria-core-service` (catálogo `permiso`, roles, matriz rol×permiso, overrides y bundle efectivo `GET /api/tesoreria/core/permisoEfectivo/usuario/{userId}`), con claves en el formato `modulo.accion`; se documenta además la regla de no agregar ni modificar seguridad en endpoints existentes ni en código legacy, porque el sistema legacy no envía token ni permisos.
+- `.github/workflows/deploy-staging.yml`: el job `deploy` ahora se ejecuta con una matriz `staging` / `staging-new` (`fail-fast: false`), selecciona el runner self-hosted por entorno (`runs-on: [self-hosted, linux, "${{ matrix.environment }}"]`) y usa el GitHub Environment correspondiente. El job `build-image` y el flujo de verificación no cambian; no hay cambios en la aplicación ni en su API.
+
+### Fixed
+
+- Cerrado el bloque de código Mermaid (fence de apertura y cierre) en `docs/diagrams/flujo-campanha.mmd`, `flujo-reservavacante.mmd`, `flujo-creacion-campanha.mmd` y `flujo-consulta-reservavacante.mmd`. Al faltar la fence final, el paso `sed '1d;$d'` de `generate-docs.yml` eliminaba la última línea real del diagrama (por ejemplo `MAP --> RES` o el `end` de la secuencia), produciendo diagramas incompletos o con error de sintaxis en GitHub Pages. Los siete diagramas vuelven a renderizar correctamente con Mermaid CLI.
+
 ## [0.8.0] - 2026-10-04
 
 ### Added
