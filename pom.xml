@@ -10,7 +10,7 @@
     </parent>
     <groupId>tesoreria</groupId>
     <artifactId>umhub-service</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.1</version>
     <name>um.tesoreria.umhub-service</name>
     <description>um.tesoreria.umhub-service</description>
     <url/>
