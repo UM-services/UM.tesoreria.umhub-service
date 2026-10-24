@@ -5,6 +5,29 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-10-23
+
+### Added
+
+- `ReservaVacanteNotificacionClaimPort` + `ReservaVacanteNotificacionClaimFeignClient`/`...ClaimFeignAdapter`: consumen los endpoints internos `POST /api/tesoreria/core/umhub/reservaVacante/{id}/notificacion/claim|release` de core, que son el claim atómico de la notificación de pago. umhub no tiene base de datos, así que la marca de "ya notificado" vive en core (`reserva_vacante.notificacion_pago`).
+- `KafkaProducerConfig` con `KafkaTemplate<String, Object>` (JSON) y `KafkaTemplate<String, byte[]>` (binario) para publicar en `payment-processed.DLT`.
+- Nuevos campos en `PaymentProcessedEvent`: `dateLastUpdated` (`date_last_updated` del pago en MercadoPago, orden de los eventos) y `source` (`WEBHOOK_V1` | `IPN_LEGACY` | `MANUAL`).
+- `PaymentProcessedConsumerTest`: claim perdido ⇒ no notifica; envío fallido ⇒ `release` + excepción propagada; liberación fallida ⇒ excepción suprimida; reserva inexistente ⇒ `release` + excepción propagada (deriva al DLT).
+- `KafkaConsumerConfigTest`: deserializa `payment-processed` sin headers, con el `__TypeId__` legacy del productor anterior y con un type id desconocido.
+
+### Changed
+
+- **Requiere `tesoreria-core-service` con los endpoints de claim** (`reservaVacante/{id}/notificacion/claim|release`) desplegado antes o junto con este release: sin ellos el consumer no puede reclamar la notificación y los pagos aprobados terminan en `payment-processed.DLT`.
+- Consul: `query-passing: true` (Feign/LoadBalancer sólo resuelven instancias con los checks en passing) y health check registrado contra `/actuator/health/readiness` con poda del servicio a los 5 minutos en estado crítico.
+- `PaymentProcessedConsumer` es idempotente: pide el claim de la reserva antes de notificar, si otra entrega del evento ya notificó termina en no-op, y si el envío falla libera el claim y propaga la excepción para que Kafka reintente. Ya no se traga los errores (antes el offset avanzaba y la notificación se perdía). (`containerFactory` explícito para que aplique el DLT.)
+- `ReservaVacanteNotificationFeignAdapter.notifyPayment` deja de capturar la excepción del POST a n8n: el consumer necesita enterarse para liberar el claim y reintentar.
+- `KafkaConsumerConfig` deserializa por **tipo target** (`useHeadersIfPresent=false`) e ignora `__TypeId__`; se eliminan el mapping FQCN `um.tesoreria.mercadopago.service.domain.event.PaymentProcessedEvent` y `trusted.packages("*")`.
+- `KafkaConsumerConfig`: reintentos con backoff exponencial (1 s × 2, 5 reintentos) y derivación a `payment-processed.DLT` con `DeadLetterPublishingRecoverer`, en lugar de `FixedBackOff(1000, 2)` sin recoverer (el record se descartaba).
+- Spring Boot (parent) actualizado de `4.1.1` a `4.1.2`.
+- Spring Cloud actualizado de `2025.1.3` a `2025.1.4`.
+- `springdoc-openapi-starter-webmvc-ui` actualizado de `3.1.0` a `3.1.1`.
+- `jacoco-maven-plugin` actualizado de `0.8.13` a `0.8.15`.
+
 ## [0.8.1] - 2026-10-19
 
 ### Changed
