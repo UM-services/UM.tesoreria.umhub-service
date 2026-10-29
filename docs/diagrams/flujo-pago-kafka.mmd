@@ -11,7 +11,7 @@ sequenceDiagram
     participant DLT as Kafka (payment-processed.DLT)
 
     MP->>KAFKA: Publica PaymentProcessedEvent
-    KAFKA->>CONSUMER: Consume evento
+    KAFKA->>CONSUMER: Consume evento (grupo nuevo arranca en latest)
     alt Evento descartado
         CONSUMER->>CONSUMER: reservaVacanteId nulo o status distinto de approved
     else Pago aprobado de reserva de vacante
@@ -36,7 +36,7 @@ sequenceDiagram
                 CLAIM->>CORE: POST /api/tesoreria/core/umhub/reservaVacante/{id}/notificacion/release
                 CONSUMER-->>KAFKA: Excepción propagada
                 KAFKA->>CONSUMER: Reintento con backoff exponencial (1 s x 2, hasta 5 intentos)
-                KAFKA->>DLT: Reintentos agotados o JSON inválido
+                KAFKA->>DLT: Reintentos agotados o JSON inválido (JSON del evento, sin __TypeId__)
             end
         end
     end

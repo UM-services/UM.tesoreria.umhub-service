@@ -37,8 +37,12 @@ spring:
         tags: tesoreria,umhub
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      fail-fast: true
+      modify-topic-configs: true
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:tesoreria-umhub-group}
+      auto-offset-reset: ${SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET:latest}
 
 logging:
   level:

@@ -25,17 +25,26 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+    public JacksonJsonSerializer<Object> kafkaJsonSerializer() {
+        JacksonJsonSerializer<Object> serializer = new JacksonJsonSerializer<>();
+        // El contrato del topic es el JSON del evento: no se escribe __TypeId__.
+        serializer.setAddTypeInfo(false);
+        return serializer;
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public ProducerFactory<String, Object> producerFactory(JacksonJsonSerializer<Object> kafkaJsonSerializer) {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        // La instancia explícita es obligatoria: si se declara sólo la clase, Kafka la crea con
+        // addTypeInfo=true y el DLT de umhub sale con __TypeId__ (header que apunta a una clase
+        // que no existe en los demás servicios).
+        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), kafkaJsonSerializer);
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate(JacksonJsonSerializer<Object> kafkaJsonSerializer) {
+        return new KafkaTemplate<>(producerFactory(kafkaJsonSerializer));
     }
 
     /**
