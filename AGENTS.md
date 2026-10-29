@@ -12,7 +12,7 @@ It follows **Hexagonal Architecture** (ports and adapters) with two slices (boun
 
 - **Java 25** (do not use older APIs when a modern alternative exists) + **Lombok**
 - **Spring Boot 4.1.x** (parent `spring-boot-starter-parent`; Jackson is `tools.jackson.*`, NOT `com.fasterxml.jackson.databind` in new configuration — see the note under Kafka)
-- **Spring Cloud 2025.1.3**: Consul discovery, OpenFeign (+ feign-hc5)
+- **Spring Cloud 2025.1.4**: Consul discovery, OpenFeign (+ feign-hc5)
 - **Kafka** (`spring-boot-starter-kafka`), **Caffeine cache**, **SpringDoc OpenAPI**, **Actuator**
 - **Maven** with wrapper (`./mvnw`); **JaCoCo** + **SonarCloud** (organization `um-services`)
 - Multi-stage Docker packaging (JRE 25 Alpine, non-root user)
@@ -81,15 +81,17 @@ Root package: `tesoreria.umhub`. Slices in `tesoreria.umhub.hexagonal.umhub.{sli
 
 ## Kafka / n8n
 
-- Consumed topic: `payment-processed`, groupId `tesoreria-umhub-group` (override with `SPRING_KAFKA_*`).
-- `KafkaConsumerConfig`: JSON deserializer with `ErrorHandlingDeserializer`, `FAIL_ON_UNKNOWN_PROPERTIES` disabled, trusted packages `*`, type-header mapping `um.tesoreria.mercadopago.service.domain.event.PaymentProcessedEvent` → local `PaymentProcessedEvent`. Note: it uses `tools.jackson` (Jackson 3, Spring Boot 4).
-- The consumer filters: it ignores events with `reservaVacanteId == null` and states != `approved`; errors are logged and swallowed (fixed 1s x2 retry via `DefaultErrorHandler`) — **do not propagate exceptions that would kill the listener**.
-- n8n notification: Feign client with `url = "${app.n8n.webhook-url}"` to `POST /webhook/mercado-pago`.
+- Consumed topic: `payment-processed`, groupId `tesoreria-umhub-group` (override with `SPRING_KAFKA_*`); dead-letter topic: `payment-processed.DLT`.
+- `KafkaConsumerConfig`: JSON deserializer pinned to the target type (`JacksonJsonDeserializer<>(PaymentProcessedEvent.class, objectMapper, false)`), `ErrorHandlingDeserializer`, `FAIL_ON_UNKNOWN_PROPERTIES` disabled; `__TypeId__` is ignored (no type mapper, no `trusted.packages`). Note: it uses `tools.jackson` (Jackson 3, Spring Boot 4). Retries use `ExponentialBackOff` (1 s × 2, 5 attempts) and `DeadLetterPublishingRecoverer` (JSON template for deserialized events, `byte[]` template for records that failed deserialization).
+- `PaymentProcessedConsumer`: filters events with `reservaVacanteId == null` and states != `approved`; it claims the notification in core (`POST .../reservaVacante/{id}/notificacion/claim`) before notifying and becomes a no-op if another delivery already notified. On failure it releases the claim (`.../notificacion/release`) and rethrows so Kafka retries and eventually routes the record to the DLT — **do not swallow exceptions**.
+- `KafkaProducerConfig`: `KafkaTemplate<String, Object>` (JSON) and `KafkaTemplate<String, byte[]>` (binary) used only to publish to `payment-processed.DLT` (the service produces no business events).
+- n8n notification: Feign client with `url = "${app.n8n.webhook-url}"` to `POST /webhook/mercado-pago`; `ReservaVacanteNotificationFeignAdapter.notifyPayment` must not catch the error, otherwise the claim is never released.
 
 ## Configuration
 
 - Single file: `src/main/resources/bootstrap.yml` (do not create `application.yml`).
-- Environment variables: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`; Consul at `consul-service:8500`.
+- Environment variables: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`, `SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET` (default `latest`); Consul at `consul-service:8500`.
+- Consul discovery: `query-passing: true` and health check on `/actuator/health/readiness` (`health-check-critical-timeout: 5m`) so Feign/LoadBalancer only resolve instances whose checks pass.
 - `@EnableFeignClients(basePackages = "tesoreria.umhub")` in `UmHubConfiguration`.
 
 ## Tests

@@ -9,6 +9,9 @@ flowchart LR
         ADAPT[ReservaVacanteFeignClientAdapter]
         BREQ[BackendReservaVacanteRequest]
         BRES[BackendReservaVacanteResponse]
+        KCON[PaymentProcessedConsumer]
+        CLAIMADAPT[ReservaVacanteNotificacionClaimFeignAdapter]
+        CLAIMFEIGN[ReservaVacanteNotificacionClaimFeignClient]
     end
 
     subgraph "Application Layer"
@@ -21,6 +24,7 @@ flowchart LR
         MODEL[ReservaVacante Model]
         IN[CreateReservaVacanteUseCase<br/>GetReservaVacanteStatusUseCase]
         OUT[ReservaVacanteExternalService]
+        CLAIMOUT[ReservaVacanteNotificacionClaimPort]
     end
 
     CTRL --> REQ
@@ -40,4 +44,8 @@ flowchart LR
     ADAPT --> MODEL
     MODEL --> MAP
     MAP --> RES
+    KCON --> SVC
+    KCON --> CLAIMOUT
+    CLAIMOUT --> CLAIMADAPT
+    CLAIMADAPT --> CLAIMFEIGN
 ```

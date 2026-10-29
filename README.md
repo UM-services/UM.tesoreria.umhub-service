@@ -1,29 +1,33 @@
 # UM Tesoreria Umhub Service
 
 ![Java 25](https://img.shields.io/badge/Java-25-%23ED8B00?logo=openjdk)
-![Spring Boot 4.1.1](https://img.shields.io/badge/Spring_Boot-4.1.1-%236DB33F?logo=springboot)
-![Spring Cloud 2025.1.3](https://img.shields.io/badge/Spring_Cloud-2025.1.3-%236DB33F?logo=spring)
+![Spring Boot 4.1.2](https://img.shields.io/badge/Spring_Boot-4.1.2-%236DB33F?logo=springboot)
+![Spring Cloud 2025.1.4](https://img.shields.io/badge/Spring_Cloud-2025.1.4-%236DB33F?logo=spring)
 ![Maven](https://img.shields.io/badge/Maven-3-%23C71A36?logo=apachemaven)
 ![Docker](https://img.shields.io/badge/Docker-✓-%232496ED?logo=docker)
 ![Consul](https://img.shields.io/badge/Consul-Discovery-%23CA2171?logo=consul)
+![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-events-%23231F20?logo=apachekafka)
+![Caffeine](https://img.shields.io/badge/Caffeine-cache-%23333)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-%2361DAFB?logo=openapiinitiative)
-![Version 0.8.1](https://img.shields.io/badge/Version-0.8.1-%23333?logo=semver)
+![JUnit](https://img.shields.io/badge/JUnit-6.0.3-%2325A162?logo=junit5)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI-%232088FF?logo=githubactions)
+![Version 0.9.1](https://img.shields.io/badge/Version-0.9.1-%23333?logo=semver)
 
 Microservicio de concentrador (hub) para el sistema de tesorería de la Universidad de Mendoza. Actúa como punto de integración centralizado, exponiendo funcionalidades mediante una API REST (restringida por API Key) y siguiendo una arquitectura hexagonal con puertos y adaptadores. Incluye los módulos `Campaña`, `ReservaVacante` y `Consulta` (datos personales + deuda por número de documento), cada uno con su propio modelo de dominio, casos de uso e infraestructura. Utiliza OpenFeign para la comunicación con otros microservicios del ecosistema y Apache Kafka para el procesamiento asincrónico de eventos de pago, con notificaciones integradas al webhook de n8n.
 
 ## Stack Tecnológico
 
 - **Java 25**
-- **Spring Boot 4.1.1**
-- **Spring Cloud 2025.1.3**
+- **Spring Boot 4.1.2**
+- **Spring Cloud 2025.1.4**
 - **Maven 3**
 - **API Key Authentication** — seguridad mediante header `X-API-Key`
 - **Arquitectura Hexagonal** — módulos `Campaña`, `ReservaVacante` y `Consulta` con puertos y adaptadores
-- **Consul Discovery** — registro y descubrimiento de servicios
+- **Consul Discovery** — registro y descubrimiento de servicios (sólo instancias con checks en passing; readiness en `/actuator/health/readiness`)
 - **OpenFeign + Feign HC5** — cliente HTTP declarativo con Apache HC5
-- **SpringDoc OpenAPI 3.1.0** — documentación interactiva de la API
+- **SpringDoc OpenAPI 3.1.1** — documentación interactiva de la API
 - **Caffeine Cache** — caché en memoria de alto rendimiento
-- **Apache Kafka** — consumer de eventos `payment-processed` para notificaciones de pago aprobado
+- **Apache Kafka** — consumer idempotente de eventos `payment-processed` (claim de la notificación en core) con reintentos con backoff y `payment-processed.DLT`; los consumers arrancan en `latest` por defecto (`SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET`) y el DLT se publica con el JSON del evento, sin el header `__TypeId__`
 - **n8n Webhook** — notificación de pagos procesados vía Feign a n8n
 - **Actuator** — métricas y monitoreo
 - **Docker** — imagen multi-etapa con JRE 25 Alpine
@@ -33,6 +37,7 @@ Microservicio de concentrador (hub) para el sistema de tesorería de la Universi
 - JDK 25
 - Maven 3
 - Consul (o Docker para entornos locales)
+- Apache Kafka (obligatorio al arrancar: con `spring.kafka.admin.fail-fast: true` el servicio no levanta si `KafkaAdmin` no puede conectarse ni administrar los topics)
 
 ## Ejecución local
 
@@ -99,7 +104,7 @@ La documentación incluye los siguientes diagramas Mermaid:
 | Flujo Reserva Vacante | `docs/diagrams/flujo-reservavacante.mmd` | Flujo hexagonal del módulo ReservaVacante |
 | Consulta Reserva Vacante | `docs/diagrams/flujo-consulta-reservavacante.mmd` | Secuencia HTTP de consulta de estado de reserva |
 | Consulta Persona y Deuda | `docs/diagrams/flujo-consulta-persona-deuda.mmd` | Secuencia HTTP de consulta por número de documento vía core |
-| Flujo Pago Kafka | `docs/diagrams/flujo-pago-kafka.mmd` | Flujo de procesamiento de eventos de pago vía Kafka y notificación a n8n |
+| Flujo Pago Kafka | `docs/diagrams/flujo-pago-kafka.mmd` | Flujo idempotente de eventos de pago: claim en core, notificación a n8n, liberación y derivación a `payment-processed.DLT` |
 
 ## Documentación
 

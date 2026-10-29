@@ -41,11 +41,12 @@ public class ReservaVacanteNotificationFeignAdapter implements ReservaVacanteNot
                 .pago(pagoDetails)
                 .build();
 
-        try {
-            feignClient.notifyPayment(payload);
-            log.info("Successfully notified n8n webhook for payment of reservaVacanteId: {}", domain.getId());
-        } catch (Exception e) {
-            log.error("Failed to notify n8n webhook for payment of reservaVacanteId: {}. Error: {}", domain.getId(), e.getMessage(), e);
-        }
+        /*
+         * Sin try/catch a propósito: si el POST a n8n falla, el error tiene que llegar al consumer
+         * para liberar el claim de la reserva y propagar la excepción a Kafka. Antes se tragaba
+         * acá y el consumer nunca se enteraba: el pago quedaba sin notificar y el offset avanzaba.
+         */
+        feignClient.notifyPayment(payload);
+        log.info("Successfully notified n8n webhook for payment of reservaVacanteId: {}", domain.getId());
     }
 }

@@ -29,11 +29,20 @@ spring:
       port: ${app.consul.port}
       discovery:
         prefer-ip-address: true
+        # Solo resolver instancias con los checks en passing (Feign/LoadBalancer).
+        query-passing: true
+        # Consul: readiness (sin dependencias) + poda si queda critico.
+        health-check-path: /actuator/health/readiness
+        health-check-critical-timeout: 5m
         tags: tesoreria,umhub
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      fail-fast: true
+      modify-topic-configs: true
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:tesoreria-umhub-group}
+      auto-offset-reset: ${SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET:latest}
 
 logging:
   level:
