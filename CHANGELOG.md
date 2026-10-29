@@ -5,6 +5,23 @@ Todas las modificaciones notables de este proyecto se documentarán en este arch
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-10-29
+
+### Added
+
+- Variable de entorno `SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET` (default `latest`) expuesta en `bootstrap.yml` como `spring.kafka.consumer.auto-offset-reset` y aplicada en `KafkaConsumerConfig` al `ConsumerFactory`.
+- `spring.kafka.admin.fail-fast: true` y `spring.kafka.admin.modify-topic-configs: true` en `bootstrap.yml`.
+- `KafkaProducerConfigTest`: verifica que el payload del DLT se serializa sin el header `__TypeId__` y que el `ProducerFactory` usa el bean `JacksonJsonSerializer` con `addTypeInfo=false`.
+
+### Changed
+
+- `KafkaConsumerConfig` ahora pasa `ConsumerConfig.AUTO_OFFSET_RESET_CONFIG` al cliente con default `latest`: un grupo de consumers nuevo ya no reproduce ni re-notifica pagos viejos de `payment-processed`. Se eliminan las propiedades de clase de deserializador key/value, que no tenían efecto porque las instancias se entregan directamente al `DefaultKafkaConsumerFactory`.
+- `KafkaProducerConfig` declara un bean `JacksonJsonSerializer<Object>` con `addTypeInfo=false` y lo inyecta explícitamente en `DefaultKafkaProducerFactory` y en `KafkaTemplate`: el registro del DLT queda con el JSON del evento y sin `__TypeId__`, un header que apuntaba a una clase inexistente en los demás servicios.
+- `UmHubApplicationTests` excluye `KafkaAutoConfiguration` en el perfil de test (además de `spring.kafka.listener.auto-startup=false`), para que el contexto no espere la creación de topics sin broker.
+- Con `spring.kafka.admin.fail-fast: true`, el arranque falla de forma explícita si `KafkaAdmin` no puede conectarse o administrar topics; el despliegue requiere Kafka disponible antes de levantar el servicio.
+
+Sin cambios de API, endpoints, contrato HTTP ni dependencias.
+
 ## [0.9.0] - 2026-10-23
 
 ### Added

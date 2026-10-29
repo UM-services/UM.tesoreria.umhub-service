@@ -47,14 +47,21 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
+    /**
+     * Los consumers se arman a mano: la propiedad del yml no llega sola al cliente. Para
+     * notificaciones el default correcto es {@code latest} (no re-notificar pagos viejos).
+     */
+    @Value("${spring.kafka.consumer.auto-offset-reset:latest}")
+    private String autoOffsetReset = "latest";
+
     @Bean
     public ConsumerFactory<String, PaymentProcessedEvent> consumerFactory() {
         log.info("Initializing Kafka Consumer Factory in tesoreria-umhub with bootstrapServers: {} and groupId: {}", bootstrapServers, groupId);
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
+        // Las instancias de deserializador se pasan al factory, no se declaran clases acá.
 
         JsonMapper objectMapper = JsonMapper.builder()
                 .findAndAddModules()

@@ -90,7 +90,7 @@ Root package: `tesoreria.umhub`. Slices in `tesoreria.umhub.hexagonal.umhub.{sli
 ## Configuration
 
 - Single file: `src/main/resources/bootstrap.yml` (do not create `application.yml`).
-- Environment variables: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`; Consul at `consul-service:8500`.
+- Environment variables: `APP_PORT`, `APP_API_KEY`, `APP_N8N_WEBHOOK_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, `SPRING_KAFKA_CONSUMER_GROUP_ID`, `SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET` (default `latest`); Consul at `consul-service:8500`.
 - Consul discovery: `query-passing: true` and health check on `/actuator/health/readiness` (`health-check-critical-timeout: 5m`) so Feign/LoadBalancer only resolve instances whose checks pass.
 - `@EnableFeignClients(basePackages = "tesoreria.umhub")` in `UmHubConfiguration`.
 
