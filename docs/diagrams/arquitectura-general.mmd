@@ -32,8 +32,11 @@ graph TD
             ADAPT2[FeignClientAdapter]
             KCON[PaymentProcessedConsumer]
             KCONF[KafkaConsumerConfig]
+            KPROD[KafkaProducerConfig]
             NOTIF[ReservaVacanteNotificationFeignAdapter]
             N8NCLIENT[ReservaVacanteNotificationFeignClient]
+            CLAIMADAPT[ReservaVacanteNotificacionClaimFeignAdapter]
+            CLAIMCLIENT[ReservaVacanteNotificacionClaimFeignClient]
         end
         
         subgraph "Consulta Module (Hexagonal)"
@@ -54,6 +57,7 @@ graph TD
     subgraph "Servicios Externos"
         CORE[tesoreria-core-service]
         KAFKA[Kafka Broker]
+        DLT[Kafka payment-processed.DLT]
         N8N[n8n Webhook]
     end
 
@@ -89,9 +93,15 @@ graph TD
 
     KAFKA -->|payment-processed| KCON
     KCON --> SVC2
+    KCON --> CLAIMADAPT
+    CLAIMADAPT --> CLAIMCLIENT
+    CLAIMCLIENT --> CORE
     KCON --> NOTIF
     NOTIF --> N8NCLIENT
     N8NCLIENT --> N8N
+    KCON --> KCONF
+    KCONF -->|Reintentos agotados| KPROD
+    KPROD -->|payment-processed.DLT| DLT
 
     REST -.->|Registro| CONSUL
     CORE -.->|Registro| CONSUL

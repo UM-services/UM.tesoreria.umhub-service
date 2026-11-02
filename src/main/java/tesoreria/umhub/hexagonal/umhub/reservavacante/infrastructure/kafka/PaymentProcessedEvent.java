@@ -22,6 +22,10 @@ public class PaymentProcessedEvent {
     private String statusDetail;
     private OffsetDateTime dateApproved;
     private OffsetDateTime dateCreated;
+    /** {@code date_last_updated} del pago en MP (orden de los eventos). */
+    private OffsetDateTime dateLastUpdated;
     private BigDecimal transactionAmount;
     private String paymentJson;
+    /** {@code WEBHOOK_V1} | {@code IPN_LEGACY} | {@code MANUAL}. */
+    private String source;
 }

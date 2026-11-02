@@ -3,19 +3,41 @@ sequenceDiagram
     participant MP as Mercado Pago
     participant KAFKA as Kafka (payment-processed)
     participant CONSUMER as PaymentProcessedConsumer
+    participant CLAIM as ReservaVacanteNotificacionClaimFeignAdapter
+    participant CORE as tesoreria-core-service
     participant SVC as ReservaVacanteService
     participant NOTIF as ReservaVacanteNotificationFeignAdapter
     participant N8N as n8n Webhook
+    participant DLT as Kafka (payment-processed.DLT)
 
     MP->>KAFKA: Publica PaymentProcessedEvent
-    KAFKA->>CONSUMER: Consume evento
-    CONSUMER->>CONSUMER: Valida reservaVacanteId != null
-    CONSUMER->>CONSUMER: Valida status == approved
-    CONSUMER->>SVC: getStatus(reservaVacanteId)
-    SVC-->>CONSUMER: ReservaVacante
-    CONSUMER->>CONSUMER: setStatus("pagado")
-    CONSUMER->>NOTIF: notifyPayment(reservaVacante, event)
-    NOTIF->>N8N: POST /webhook/mercado-pago (N8nNotificationPayload)
-    N8N-->>NOTIF: 200 OK
-    NOTIF-->>CONSUMER: Notificación enviada
+    KAFKA->>CONSUMER: Consume evento (grupo nuevo arranca en latest)
+    alt Evento descartado
+        CONSUMER->>CONSUMER: reservaVacanteId nulo o status distinto de approved
+    else Pago aprobado de reserva de vacante
+        CONSUMER->>CLAIM: claim(reservaVacanteId)
+        CLAIM->>CORE: POST /api/tesoreria/core/umhub/reservaVacante/{id}/notificacion/claim
+        CORE-->>CLAIM: true si esta entrega gana el claim
+        alt Otra entrega ya notificó
+            CLAIM-->>CONSUMER: false
+            CONSUMER->>CONSUMER: No-op
+        else Claim ganado
+            CLAIM-->>CONSUMER: true
+            CONSUMER->>SVC: getStatus(reservaVacanteId)
+            SVC-->>CONSUMER: ReservaVacante
+            CONSUMER->>CONSUMER: setStatus("pagado")
+            alt Envío correcto
+                CONSUMER->>NOTIF: notifyPayment(reservaVacante, event)
+                NOTIF->>N8N: POST /webhook/mercado-pago
+                N8N-->>NOTIF: 200 OK
+                NOTIF-->>CONSUMER: Notificación enviada
+            else Reserva inexistente o fallo del POST a n8n
+                CONSUMER->>CLAIM: release(reservaVacanteId)
+                CLAIM->>CORE: POST /api/tesoreria/core/umhub/reservaVacante/{id}/notificacion/release
+                CONSUMER-->>KAFKA: Excepción propagada
+                KAFKA->>CONSUMER: Reintento con backoff exponencial (1 s x 2, hasta 5 intentos)
+                KAFKA->>DLT: Reintentos agotados o JSON inválido (JSON del evento, sin __TypeId__)
+            end
+        end
+    end
 ```
